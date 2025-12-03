@@ -77,7 +77,7 @@
     </div>
 
     <div class="layui-form-item">
-        <label class="layui-form-label"><span class="required">*</span>笔记分组：</label>
+        <label class="layui-form-label"><span class="required">*</span>会客厅分组：</label>
         <div class="layui-input-inline">
             <select name="group_id" lay-verify="required">
                 <option value="">请选择</option>
@@ -88,16 +88,17 @@
         </div>
     </div>
 
-    <div class="layui-form-item">
+    <!-- 关联商品字段隐藏 -->
+    <div class="layui-form-item" style="display:none;">
         <label class="layui-form-label short-label">关联商品：</label>
         <div class="layui-input-inline">
             <div class="upload-img-block square">
                 {if condition="$info.goods_list"}
-                <div class="upload-img-box" id="goodImg" lay-verify="select" onclick="addGoods()">
+                <div class="upload-img-box" id="goodImg" onclick="addGoods()">
                     <img src="{:img(explode(',', $info.goods_list[0]['goods_image'])[0])}" alt="">
                 </div>
                 {else/}
-                <div class="upload-img-box" id="goodImg" lay-verify="select" onclick="addGoods()">
+                <div class="upload-img-box" id="goodImg" onclick="addGoods()">
                     <div class="upload-default">
                         <i class="iconfont iconshangchuan"></i>
                         <p>选择商品</p>
@@ -108,7 +109,7 @@
         </div>
     </div>
 
-    <div class="layui-form-item">
+    <div class="layui-form-item" style="display:none;">
         <label class="layui-form-label">商品亮点：</label>
         <div class="layui-input-block shopping-lightspot">
             <div class="add-lightspot">+ 添加亮点</div>
@@ -116,8 +117,47 @@
         <div class="word-aux">商品亮点最多可添加3个亮点</div>
     </div>
 
+    <!-- 新增字段：微信二维码 -->
     <div class="layui-form-item">
-        <label class="layui-form-label"><span class="required">*</span>笔记内容：</label>
+        <label class="layui-form-label">微信二维码：</label>
+        <div class="layui-input-inline">
+            <div class="upload-img-block square simple-uploading">
+                <div class="upload-img-box" id="wechat_qrcode_img">
+                    {if !empty($info.wechat_qrcode)}
+                    <img src="{:img($info.wechat_qrcode)}" alt="">
+                    {else /}
+                    <div class="upload-default">
+                        <i class="iconfont iconshangchuan"></i>
+                        <p>点击上传</p>
+                    </div>
+                    {/if}
+                </div>
+                <input type="hidden" name="wechat_qrcode" value="{$info.wechat_qrcode|default=''}"/>
+                <i class="del">x</i>
+            </div>
+        </div>
+        <div class="word-aux">上传微信二维码图片</div>
+    </div>
+
+    <!-- 新增字段：联系电话 -->
+    <div class="layui-form-item">
+        <label class="layui-form-label">联系电话：</label>
+        <div class="layui-input-inline">
+            <input type="text" name="phone" value="{$info.phone|default=''}" placeholder="请输入联系电话" class="layui-input">
+        </div>
+    </div>
+
+    <!-- 新增字段：是否支持预约 -->
+    <div class="layui-form-item">
+        <label class="layui-form-label">预约到店体验：</label>
+        <div class="layui-input-inline">
+            <input type="radio" name="support_reservation" value="1" title="支持" {if $info.support_reservation == 1} checked {/if}>
+            <input type="radio" name="support_reservation" value="0" title="不支持" {if $info.support_reservation == 0 || empty($info.support_reservation)} checked {/if}>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="required">*</span>会客厅内容：</label>
         <div class="layui-input-inline">
             <script id="editor" type="text/plain" class="special-length" style="height:500px;"></script>
             <input type="hidden" name="note_content" id="note_content" value="{$info.note_content}"/>
@@ -308,6 +348,15 @@
                 imageCollection.splice(1, imageCollection.length);
                 var val = '<img src="' + ns.img(imageCollection[0]) + '" alt="">';
                 $("#img").html(val);
+            }, 1);
+        });
+
+        // 微信二维码图片上传
+        $("body").off("click", "#wechat_qrcode_img").on("click", "#wechat_qrcode_img", function () {
+            openAlbum(function (data) {
+                $("input[name='wechat_qrcode']").val(data[0].pic_path);
+                var val = '<img src="' + ns.img(data[0].pic_path) + '" alt="">';
+                $("#wechat_qrcode_img").html(val);
             }, 1);
         });
 

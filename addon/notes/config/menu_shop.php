@@ -5,7 +5,7 @@
 return [
     [
         'name' => 'PROMOTION_NOTES',
-        'title' => '店铺笔记',
+        'title' => '店铺会客厅',
         'url' => 'notes://shop/notes/lists',
         'parent' => 'PROMOTION_TOOL',
         'picture' => 'addon/notes/shop/view/public/img/distribution_new.png',
@@ -15,14 +15,14 @@ return [
         'child_list' => [
             [
                 'name' => 'PROMOTION_NOTES_LISTS',
-                'title' => '笔记列表',
+                'title' => '会客厅列表',
                 'url' => 'notes://shop/notes/lists',
                 'is_show' => 1,
                 'sort' => 1,
                 'child_list' => [
                     [
                         'name' => 'PROMOTION_NOTES_ADD',
-                        'title' => '添加笔记',
+                        'title' => '添加会客厅',
                         'url' => 'notes://shop/notes/add',
                         'sort' => 1,
                         'is_show' => 0,
@@ -30,7 +30,7 @@ return [
                     ],
                     [
                         'name' => 'PROMOTION_NOTES_EDIT',
-                        'title' => '编辑笔记',
+                        'title' => '编辑会客厅',
                         'url' => 'notes://shop/notes/edit',
                         'sort' => 2,
                         'is_show' => 0,
@@ -38,7 +38,7 @@ return [
                     ],
                     [
                         'name' => 'PROMOTION_NOTES_DELETE',
-                        'title' => '删除笔记',
+                        'title' => '删除会客厅',
                         'url' => 'notes://shop/notes/delete',
                         'sort' => 3,
                         'is_show' => 0,
@@ -64,8 +64,17 @@ return [
                 'child_list' => []
             ],
             [
+                'name' => 'PROMOTION_NOTES_RE',
+                'title' => '预约列表',
+                'url' => 'notes://shop/notes/reservations',
+                'is_show' => 1,
+                'is_control' => 1,
+                'sort' => 2,
+                'child_list' => []
+            ],
+            [
                 'name' => 'PROMOTION_NOTES_GROUP',
-                'title' => '笔记分组',
+                'title' => '会客厅分组',
                 'url' => 'notes://shop/group/lists',
                 'is_show' => 1,
                 'sort' => 3,

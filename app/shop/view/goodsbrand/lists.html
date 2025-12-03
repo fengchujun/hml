@@ -1,9 +1,9 @@
 <!-- 搜索框 -->
 <div class="single-filter-box">
-	<button class="layui-btn" onclick="addBrand()">添加品牌</button>
+	<button class="layui-btn" onclick="addBrand()">添加等级</button>
 	<div class="layui-form">
 		<div class="layui-input-inline">
-			<input type="text" name="search_keys" placeholder="请输入品牌名称" autocomplete="off" class="layui-input">
+			<input type="text" name="search_keys" placeholder="请输入等级名称" autocomplete="off" class="layui-input">
 			<button type="button" class="layui-btn layui-btn-primary" lay-filter="search" lay-submit>
 				<i class="layui-icon">&#xe615;</i>
 			</button>
@@ -60,18 +60,18 @@
 				}, */
 				{
 					field: 'brand_name',
-					title: '品牌名称',
+					title: '等级名称',
 					width: '30%',
 					unresize: 'false'
 				}, {
 					field: 'image_url',
-					title: '品牌LOGO',
+					title: '等级LOGO',
 					width: '15%',
 					unresize: 'false',
 					templet: "#image_url"
 				}, {
 					field: 'banner',
-					title: '品牌广告图',
+					title: '等级广告图',
 					width: '15%',
 					unresize: 'false',
 					templet: "#banner"
@@ -109,7 +109,7 @@
 		 * 删除
 		 */
 		function deleteBrand(brand_id) {
-			layer.confirm('确定要删除该品牌吗？', function(index) {
+			layer.confirm('确定要删除该等级吗？', function(index) {
 				layer.close(index);
 				$.ajax({
 					url: ns.url("shop/goodsbrand/deleteBrand"),

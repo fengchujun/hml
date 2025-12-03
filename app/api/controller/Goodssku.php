@@ -603,6 +603,9 @@ class Goodssku extends BaseApi
         $page = $this->params['page'] ?? 1;
         $page_size = $this->params['page_size'] ?? PAGE_LIST_ROWS;
         $category_id = $this->params['category_id'] ?? 0;//分类
+        $brand_id = $this->params['brand_id'] ?? 0;//品牌
+
+        $label_id = $this->params['label_id'] ?? 0;//标签
         $order = $this->params['order'] ?? '';//排序（综合、销量、价格）
         $sort = $this->params['sort'] ?? '';//升序、降序
 
@@ -646,6 +649,23 @@ class Goodssku extends BaseApi
             }
         }
 
+        // 品牌筛选
+
+        if (!empty($brand_id)) {
+
+            $condition[] = [ 'g.brand_id', '=', $brand_id ];
+
+        }
+
+ 
+
+        // 标签筛选
+
+        if (!empty($label_id)) {
+
+            $condition[] = [ 'g.label_id', '=', $label_id ];
+
+        }
         // 非法参数进行过滤
         if ($sort != 'desc' && $sort != 'asc') {
             $sort = '';

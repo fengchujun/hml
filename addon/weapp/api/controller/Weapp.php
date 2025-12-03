@@ -86,4 +86,35 @@ class Weapp extends BaseApi
 
         return $this->response($this->success($share_config));
     }
+    
+    /**
+     * 生成推广小程序码
+     * @return string
+     */
+    public function createShareQrcode()
+    {
+        $this->checkToken();
+        
+        $weapp_model = new WeappModel($this->site_id);
+        $page = $this->params['page'] ?? '/pages/index/index';
+        $width = $this->params['width'] ?? 430;
+        
+        $data = [
+            'source_member' => $this->member_id
+        ];
+        
+        $param = [
+            'check_path'=> false,
+            'page' => $page,
+            'width' => $width,
+            'data' => $data,
+            'qrcode_path' => 'upload/qrcode',
+            'qrcode_name' => 'share_' . $this->member_id,
+            'app_type' => 'weapp'
+        ];
+        
+        $res = $weapp_model->createQrcode($param);
+        return $this->response($res);
+    }
+    
 }

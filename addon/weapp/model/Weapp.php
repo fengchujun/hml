@@ -141,7 +141,10 @@ class Weapp extends BaseModel
                     else $scene .= '&' . $key . '-' . $value;
                 }
             }
+
             $response = $this->app->app_code->getUnlimit($scene, [
+                  "env_version"=> "trial" ,
+                  'check_path'=> false,
                 'page' => substr($param[ 'page' ], 1),
                 'width' => $param['width'] ?? 120
             ]);

@@ -117,6 +117,11 @@ class Notes extends BaseShop
                 'note_link' => input('note_link', ''),
                 'video_path' => input('video_path', ''),
 
+                // 新增会客厅字段
+                'wechat_qrcode' => input('wechat_qrcode', ''),
+                'phone' => input('phone', ''),
+                'support_reservation' => input('support_reservation', '0'),
+
             ];
             $notes_model = new NotesModel();
             return $notes_model->addNotes($notes_data);
@@ -175,6 +180,11 @@ class Notes extends BaseShop
 
                 'note_link' => input('note_link', ''),
                 'video_path' => input('video_path', ''),
+
+                // 新增会客厅字段
+                'wechat_qrcode' => input('wechat_qrcode', ''),
+                'phone' => input('phone', ''),
+                'support_reservation' => input('support_reservation', '0'),
             ];
 
             return $notes_model->editNotes($notes_data);
@@ -340,6 +350,62 @@ class Notes extends BaseShop
         $result = $note_model->pullWechatArticle([ 'url' => $url ]);
         //['title' => '', 'content' => '']
         return $result;
+    }
+
+    /**
+     * 预约列表
+     */
+    public function reservations()
+    {
+        if (request()->isJson()) {
+            $model = new \addon\notes\model\LoungeReservation();
+
+            $condition[] = ['lr.site_id', '=', $this->site_id];
+
+            // 预约人姓名
+            $name = input('name', '');
+            if ($name) {
+                $condition[] = ['lr.name', 'like', '%' . $name . '%'];
+            }
+
+            // 预约状态
+            $status = input('status', '');
+            if ($status !== '') {
+                $condition[] = ['lr.status', '=', $status];
+            }
+
+            // 会客厅名称
+            $note_title = input('note_title', '');
+            if ($note_title) {
+                $condition[] = ['n.note_title', 'like', '%' . $note_title . '%'];
+            }
+
+            $page = input('page', 1);
+            $page_size = input('page_size', PAGE_LIST_ROWS);
+
+            $list = $model->getReservationPageList($condition, $page, $page_size, 'lr.create_time desc');
+            return $list;
+        } else {
+            return $this->fetch("notes/reservations");
+        }
+    }
+
+    /**
+     * 编辑预约
+     */
+    public function editReservation()
+    {
+        if (request()->isJson()) {
+            $model = new \addon\notes\model\LoungeReservation();
+
+            $data = [
+                'id' => input('id', 0),
+                'status' => input('status', 0),
+                'reservation_time' => input('reservation_time', 0),
+            ];
+
+            return $model->editReservation($data);
+        }
     }
 
 

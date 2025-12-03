@@ -1,0 +1,291 @@
+<style>
+	.layui-table-header{overflow: inherit;}
+	.layui-table-header .layui-table-cell{overflow: inherit;}
+	.layui-form-item .layui-form-checkbox[lay-skin=primary] {margin-top: 0;}
+	.layui-layout-admin .layui-form-item .layui-input-inline{background-color: #fff;}
+	.status-badge {
+		display: inline-block;
+		padding: 3px 10px;
+		border-radius: 3px;
+		font-size: 12px;
+	}
+	.status-0 { background-color: #f0ad4e; color: #fff; }
+	.status-1 { background-color: #5cb85c; color: #fff; }
+	.status-2 { background-color: #5bc0de; color: #fff; }
+	.status-3 { background-color: #d9534f; color: #fff; }
+</style>
+
+<div class="screen layui-collapse" lay-filter="selection_panel">
+	<div class="layui-colla-item">
+		<h2 class="layui-colla-title">筛选</h2>
+		<form class="layui-colla-content layui-form layui-show">
+			<div class="layui-form-item">
+
+				<div class="layui-inline">
+					<label class="layui-form-label">预约人姓名：</label>
+					<div class="layui-input-inline">
+						<input type="text" name="name" placeholder="请输入预约人姓名" class="layui-input">
+					</div>
+				</div>
+
+				<div class="layui-inline">
+					<label class="layui-form-label">会客厅名称：</label>
+					<div class="layui-input-inline">
+						<input type="text" name="note_title" placeholder="请输入会客厅名称" class="layui-input">
+					</div>
+				</div>
+
+				<div class="layui-inline">
+					<label class="layui-form-label">预约状态：</label>
+					<div class="layui-input-inline">
+						<select name="status" lay-filter="status">
+							<option value="">全部</option>
+							<option value="0">待预约</option>
+							<option value="1">已预约</option>
+							<option value="2">已到访</option>
+							<option value="3">已取消</option>
+						</select>
+					</div>
+				</div>
+
+			</div>
+
+			<div class="form-row">
+				<button class="layui-btn" lay-submit lay-filter="search">筛选</button>
+				<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+<div class="layui-tab table-tab" lay-filter="reservation_tab">
+	<div class="layui-tab-content">
+		<!-- 列表 -->
+		<table id="reservation_list" lay-filter="reservation_list"></table>
+	</div>
+</div>
+
+<!-- 操作 -->
+<script type="text/html" id="operation">
+	<div class="table-btn">
+		<a class="layui-btn" lay-event="edit">处理</a>
+	</div>
+</script>
+
+<!-- 状态 -->
+<script type="text/html" id="status_tpl">
+	{{# if(d.status == 0){ }}
+		<span class="status-badge status-0">待预约</span>
+	{{# } else if(d.status == 1){ }}
+		<span class="status-badge status-1">已预约</span>
+	{{# } else if(d.status == 2){ }}
+		<span class="status-badge status-2">已到访</span>
+	{{# } else if(d.status == 3){ }}
+		<span class="status-badge status-3">已取消</span>
+	{{# } }}
+</script>
+
+<!-- 预约时间 -->
+<script type="text/html" id="reservation_time_tpl">
+	{{# if(d.reservation_time > 0){ }}
+		{{ns.time_to_date(d.reservation_time)}}
+	{{# } else { }}
+		<span style="color: #999;">未设置</span>
+	{{# } }}
+</script>
+
+<script>
+	var table, form, laydate, repeat_flag;
+	layui.use(['form', 'laydate'], function() {
+		form = layui.form;
+		laydate = layui.laydate;
+		repeat_flag = false;
+
+		form.render();
+
+		table = new Table({
+			elem: '#reservation_list',
+			url: ns.url("notes://shop/notes/reservations"),
+			cols: [
+				[{
+					field: 'id',
+					title: 'ID',
+					unresize: 'false',
+					width: '5%'
+				}, {
+					field: 'note_title',
+					title: '会客厅名称',
+					unresize: 'false',
+					width: '12%'
+				}, {
+					field: 'name',
+					title: '预约人姓名',
+					unresize: 'false',
+					width: '8%'
+				}, {
+					field: 'phone',
+					title: '联系电话',
+					unresize: 'false',
+					width: '10%'
+				}, {
+					field: 'message',
+					title: '留言备注',
+					unresize: 'false',
+					width: '15%',
+					templet: function(d) {
+						return d.message || '-';
+					}
+				}, {
+					field: 'status',
+					title: '预约状态',
+					unresize: 'false',
+					width: '8%',
+					templet: '#status_tpl'
+				}, {
+					field: 'reservation_time',
+					title: '预约时间',
+					unresize: 'false',
+					width: '12%',
+					templet: '#reservation_time_tpl'
+				}, {
+					title: '创建时间',
+					unresize: 'false',
+					width: '12%',
+					templet: function(data) {
+						return ns.time_to_date(data.create_time);
+					}
+				}, {
+					title: '操作',
+					toolbar: '#operation',
+					unresize: 'false',
+					width: '10%',
+					align: 'right',
+				}]
+			]
+		});
+
+		/**
+		 * 搜索功能
+		 */
+		form.on('submit(search)', function(data) {
+			table.reload({
+				page: {
+					curr: 1
+				},
+				where: data.field
+			});
+			return false;
+		});
+
+		/**
+		 * 监听工具栏操作
+		 */
+		table.tool(function(obj) {
+			var data = obj.data;
+			switch (obj.event) {
+				case 'edit':
+					editReservation(data);
+					break;
+			}
+		});
+
+		/**
+		 * 编辑预约
+		 */
+		function editReservation(data) {
+			var html = `
+				<form class="layui-form" style="padding: 20px;">
+					<div class="layui-form-item">
+						<label class="layui-form-label">预约状态</label>
+						<div class="layui-input-block">
+							<select name="status" lay-verify="required">
+								<option value="0" ${data.status == 0 ? 'selected' : ''}>待预约</option>
+								<option value="1" ${data.status == 1 ? 'selected' : ''}>已预约</option>
+								<option value="2" ${data.status == 2 ? 'selected' : ''}>已到访</option>
+								<option value="3" ${data.status == 3 ? 'selected' : ''}>已取消</option>
+							</select>
+						</div>
+					</div>
+					<div class="layui-form-item">
+						<label class="layui-form-label">预约时间</label>
+						<div class="layui-input-block">
+							<input type="text" name="reservation_time" id="reservation_time" autocomplete="off" class="layui-input" readonly>
+						</div>
+					</div>
+					<div class="layui-form-item">
+						<div class="layui-input-block">
+							<button class="layui-btn" lay-submit lay-filter="saveReservation">保存</button>
+							<button type="button" class="layui-btn layui-btn-primary" id="closeEdit">取消</button>
+						</div>
+					</div>
+				</form>
+			`;
+
+			var index = layer.open({
+				type: 1,
+				title: '处理预约',
+				content: html,
+				area: ['500px', '350px'],
+				success: function(layero, idx) {
+					form.render();
+
+					// 延迟渲染时间选择器，确保DOM完全准备好
+					setTimeout(function() {
+						laydate.render({
+							elem: '#reservation_time',
+							type: 'datetime',
+							value: data.reservation_time > 0 ? ns.time_to_date(data.reservation_time) : '',
+							done: function(value, date) {
+								// 确保值被正确设置
+								$('#reservation_time').val(value);
+							}
+						});
+					}, 100);
+
+					// 监听表单提交
+					form.on('submit(saveReservation)', function(formData) {
+						if (repeat_flag) return false;
+						repeat_flag = true;
+
+						var postData = {
+							id: data.id,
+							status: formData.field.status,
+							reservation_time: formData.field.reservation_time ? ns.date_to_time(formData.field.reservation_time) : 0
+						};
+
+						$.ajax({
+							type: 'POST',
+							url: ns.url("notes://shop/notes/editReservation"),
+							data: postData,
+							dataType: 'JSON',
+							success: function(res) {
+								repeat_flag = false;
+								if (res.code == '更新成功') {
+									layer.msg(res.message, {time: 1500}, function() {
+										// 关闭编辑弹窗
+										layer.close(index);
+										// 刷新列表
+										table.reload();
+									});
+								} else {
+									layer.msg(res.message);
+								}
+							},
+							error: function() {
+								repeat_flag = false;
+								layer.msg('操作失败，请重试');
+							}
+						});
+
+						return false;
+					});
+
+					// 取消按钮
+					$('#closeEdit').click(function() {
+						layer.close(index);
+					});
+				}
+			});
+		}
+	});
+</script>

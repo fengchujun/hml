@@ -9,8 +9,8 @@
  */
 return [
     'name' => 'notes',
-    'title' => '店铺笔记',
-    'description' => '店铺笔记管理活动',
+    'title' => '店铺会客厅',
+    'description' => '店铺会客厅管理活动',
     'type' => 'promotion', //插件类型  system :系统插件(自动安装), promotion:扩展营销插件  tool:工具插件
     'status' => 1,
     'author' => '',

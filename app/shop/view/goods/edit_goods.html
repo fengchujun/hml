@@ -85,10 +85,10 @@
 						</div>
 
 						<div class="layui-form-item">
-							<label class="layui-form-label">商品品牌：</label>
+							<label class="layui-form-label">商品等级：</label>
 							<div class="layui-input-inline">
 								<select name="brand_id" lay-search="" lay-filter="brand_id">
-									<option value="">请选择商品品牌</option>
+									<option value="">请选择商品等级</option>
 									{foreach name="$brand_list" item="vo"}
 									<option value="{$vo['brand_id']}" {if $goods_info['brand_id'] == $vo['brand_id'] }selected{/if}>{$vo['brand_name']}</option>
 									{/foreach}

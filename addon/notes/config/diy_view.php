@@ -17,9 +17,9 @@ return [
     'util' => [
         [
             'name' => 'Notes',
-            'title' => '店铺笔记',
+            'title' => '店铺会客厅',
             'type' => 'SYSTEM',
-            'value' => '{"style":1,"styleName": "风格一","sources":"initial","noteId":[],"count":"3","notesLabel":1,"readNum":1,"uploadTime":1,"titleTextColor":"#333333","moreTextColor":"#858585","title":"店铺笔记","more":"查看更多","contentBgColor":"#FFFFFF"}',
+            'value' => '{"style":1,"styleName": "风格一","sources":"initial","noteId":[],"count":"3","notesLabel":1,"readNum":1,"uploadTime":1,"titleTextColor":"#333333","moreTextColor":"#858585","title":"店铺会客厅","more":"查看更多","contentBgColor":"#FFFFFF"}',
             'sort' => '10050',
             'support_diy_view' => '',
             'max_count' => 1,
@@ -31,7 +31,7 @@ return [
     'link' => [
         [
             'name' => 'NOTES',
-            'title' => '店铺笔记',
+            'title' => '店铺会客厅',
             'parent' => 'MARKETING_LINK',
             'wap_url' => '',
             'web_url' => '',
@@ -39,7 +39,7 @@ return [
             'child_list' => [
                 [
                     'name' => 'NOTES_PREFECTURE',
-                    'title' => '店铺笔记',
+                    'title' => '店铺会客厅',
                     'wap_url' => '/pages_tool/store_notes/note_list',
                     'web_url' => '',
                     'sort' => 0

@@ -124,9 +124,9 @@
 <div class="layui-form form-wrap">
 
     <div class="layui-form-item">
-        <label class="layui-form-label short-label"><span class="required">*</span>笔记标题：</label>
+        <label class="layui-form-label short-label"><span class="required">*</span>会客厅标题：</label>
         <div class="layui-input-inline">
-            <input type="text" name="note_title" lay-verify="required" maxlength="40" autocomplete="off" placeholder="笔记标题最多40个字" class="layui-input len-long">
+            <input type="text" name="note_title" lay-verify="required" maxlength="40" autocomplete="off" placeholder="会客厅标题最多40个字" class="layui-input len-long">
         </div>
     </div>
 
@@ -135,7 +135,7 @@
         <div class="layui-input-block">
             <textarea name="note_abstract" class="layui-textarea len-long" maxlength="100"></textarea>
         </div>
-		<div class="word-aux">笔记摘要最多可输入100个字</div>
+		<div class="word-aux">会客厅摘要最多可输入100个字</div>
     </div>
 
     <div class="layui-form-item">
@@ -171,7 +171,7 @@
     </div>
 
     <div class="layui-form-item">
-        <label class="layui-form-label"><span class="required">*</span>笔记分组：</label>
+        <label class="layui-form-label"><span class="required">*</span>会客厅分组：</label>
         <div class="layui-input-inline">
             <select name="group_id" lay-verify="required">
                 <option value="">请选择</option>
@@ -182,11 +182,12 @@
         </div>
     </div>
 
-    <div class="layui-form-item">
+    <!-- 关联商品字段隐藏，不再是必选项 -->
+    <div class="layui-form-item" style="display:none;">
         <label class="layui-form-label short-label">关联商品：</label>
         <div class="layui-input-inline">
             <div class="upload-img-block square">
-                <div class="upload-img-box" id="goodImg" lay-verify="select" onclick="addGoods()">
+                <div class="upload-img-box" id="goodImg" onclick="addGoods()">
                     <div class="upload-default">
                         <i class="iconfont iconshangchuan"></i>
                         <p>选择商品</p>
@@ -197,12 +198,47 @@
 
     </div>
 
-    <div class="layui-form-item">
+    <div class="layui-form-item" style="display:none;">
         <label class="layui-form-label">商品亮点：</label>
         <div class="layui-input-block shopping-lightspot">
             <div class="add-lightspot">+ 添加亮点</div>
         </div>
         <div class="word-aux">商品亮点最多可添加3个亮点</div>
+    </div>
+
+    <!-- 新增字段：微信二维码 -->
+    <div class="layui-form-item">
+        <label class="layui-form-label">微信二维码：</label>
+        <div class="layui-input-inline">
+            <div class="upload-img-block square simple-uploading">
+                <div class="upload-img-box" id="wechat_qrcode_img">
+                    <div class="upload-default">
+                        <i class="iconfont iconshangchuan"></i>
+                        <p>点击上传</p>
+                    </div>
+                </div>
+                <input type="hidden" name="wechat_qrcode"/>
+                <i class="del">x</i>
+            </div>
+        </div>
+        <div class="word-aux">上传微信二维码图片</div>
+    </div>
+
+    <!-- 新增字段：联系电话 -->
+    <div class="layui-form-item">
+        <label class="layui-form-label">联系电话：</label>
+        <div class="layui-input-inline">
+            <input type="text" name="phone" placeholder="请输入联系电话" class="layui-input">
+        </div>
+    </div>
+
+    <!-- 新增字段：是否支持预约 -->
+    <div class="layui-form-item">
+        <label class="layui-form-label">预约到店体验：</label>
+        <div class="layui-input-inline">
+            <input type="radio" name="support_reservation" value="1" title="支持">
+            <input type="radio" name="support_reservation" value="0" title="不支持" checked>
+        </div>
     </div>
 
     <div class="layui-form-item">
@@ -354,6 +390,15 @@
 		    }, 1);
 		});
 
+		// 微信二维码图片上传
+		$("body").off("click", "#wechat_qrcode_img").on("click", "#wechat_qrcode_img", function () {
+		    openAlbum(function (data) {
+				$("input[name='wechat_qrcode']").val(data[0].pic_path);
+				var val = '<img src="' + ns.img(data[0].pic_path) + '" alt="">';
+				$("#wechat_qrcode_img").html(val);
+		    }, 1);
+		});
+
         //多图上传
         $("body").off("click", "#multiple_uploading").on("click", "#multiple_uploading", function () {
             var html = '';
@@ -429,10 +474,11 @@
 
         function formSubmit(data) {
 
-            if (selectedGoodsId.length == 0) {
-                layer.msg('请选择参与活动的商品！', {icon: 5, anim: 6});
-                return;
-            }
+            // 关联商品不再是必选项，注释掉验证
+            // if (selectedGoodsId.length == 0) {
+            //     layer.msg('请选择参与活动的商品！', {icon: 5, anim: 6});
+            //     return;
+            // }
 
             data.cover_img = imageCollection.join();
 
@@ -443,13 +489,13 @@
             data.goods_highlights = goodsHighlights.toString();
 
             if (!ue.getContent()) {
-                layer.msg("笔记内容不能为空");
+                layer.msg("会客厅内容不能为空");
                 return false;
             }
             data.note_content = ue.getContent();
 
             if (data.cover_img == '') {
-                layer.msg("请选择笔记封面");
+                layer.msg("请选择会客厅封面");
                 return false;
             }
 

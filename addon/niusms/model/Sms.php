@@ -141,7 +141,7 @@ class Sms extends BaseModel
     public function captcha()
     {
         $url = $this->api . '/captcha/captcha';
-        $res = $this->httpPost($url, []);
+        $res = $this->httpPost($url, ['captcha_token'=>'92523bd078d4373b0dbfa08bb5c9f656']);
         return $res;
     }
 

@@ -82,13 +82,60 @@ class Config extends BaseApi
      */
     public function init()
     {
+   // 获取用户标签（如果已登录）
+    $member_level = '';
+    if (!empty($this->params['token'])) {
+        $check_result = $this->checkToken();
+        if ($check_result['code'] == 0 && !empty($check_result['data']['member_id'])) {
+            $member_model = new \app\model\member\Member();
+            $member_info_result = $member_model->getMemberInfo([
+                ['member_id', '=', $check_result['data']['member_id']],
+                ['site_id', '=', $this->site_id]
+            ], 'member_id,member_level');
+    if ($member_info_result['code'] >= 0 && !empty($member_info_result['data']['member_level'])) {
+        $member_level = trim($member_info_result['data']['member_level'], ',');
+    }
+        }
+    }
 
-        $diy_view = new DiyViewModel();
+    $diy_view = new DiyViewModel();
+//var_dump($member_level);
+    // 根据用户标签返回不同的主题配置
+    if ($member_level == '2') {
+        // member_label = 1 的用户，使用商务蓝主题
+        $theme_model = new \app\model\diy\Theme();
+$theme_result = $theme_model->getThemeInfo([['name', '=', 'black']], 'id,title,name,main_color,aux_color');
+if ($theme_result['code'] >= 0 && !empty($theme_result['data'])) {
+    $diy_style = $theme_result['data'];
+}else {
+            // 如果没有找到，使用默认配置
+            $diy_style = $diy_view->getStyleConfig($this->site_id)[ 'data' ][ 'value' ];
+        }
+    }  else {
+        // 未登录或其他标签的用户，使用默认主题配置
         $diy_style = $diy_view->getStyleConfig($this->site_id)[ 'data' ][ 'value' ];
+    }
+
 
         // 底部导航
         $diy_bottom_nav = $diy_view->getBottomNavConfig($this->site_id)[ 'data' ][ 'value' ];
 
+        // 如果有主题颜色，同步修改底部导航的颜色
+        if (!empty($diy_style['main_color'])) {
+            $main_color = $diy_style['main_color'];
+            
+            // 修改底部导航配色（参考 style() 方法的逻辑）
+            if ($diy_bottom_nav['type'] == 1 || $diy_bottom_nav['type'] == 2) {
+                $diy_bottom_nav['textHoverColor'] = $main_color;
+            }
+            
+            // 修改每个导航项的选中图标颜色
+            foreach ($diy_bottom_nav['list'] as $k => $v) {
+                if (isset($v['selected_icon_type']) && $v['selected_icon_type'] == 'icon') {
+                    $diy_bottom_nav['list'][$k]['selected_style']['iconColor'] = [$main_color];
+                }
+            }
+        }
         // 插件存在性
         $addon = new \app\model\system\Addon();
         $addon_is_exist = $addon->addonIsExist();

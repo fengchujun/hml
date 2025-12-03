@@ -26,8 +26,37 @@ class Goodscategory extends BaseApi
         ];
 
         $field = 'category_id,category_name,short_name,pid,level,image,category_id_1,category_id_2,category_id_3,image_adv,link_url,is_recommend,icon';
-        $order = 'sort asc,category_id desc';
+        $order = 'sort desc';
         $list = $goods_category_model->getCategoryTree($condition, $field, $order);
+
+
+    // 获取品牌列表
+    $brand_model = new \app\model\goods\GoodsBrand();
+    $brand_result = $brand_model->getBrandList(
+        [['site_id', '=', $this->site_id]], 
+        'brand_id,brand_name,image_url,sort', 
+        'sort asc,brand_id desc'
+    );
+    
+    // 获取商品标签列表
+    $label_model = new \app\model\goods\GoodsLabel();
+    $label_result = $label_model->getLabelList(
+        [['site_id', '=', $this->site_id]], 
+        'id,label_name,sort', 
+        'sort asc,id desc'
+    );
+
+    // 重新组装返回数据，保持分类列表的数组格式
+    if ($list['code'] >= 0) {
+        $category_list = $list['data'];  // 保存原始分类数据
+        $brand_list = $brand_result['code'] >= 0 ? $brand_result['data'] : [];
+        $label_list = $label_result['code'] >= 0 ? $label_result['data'] : [];
+        
+        // 重新组装数据结构
+        $list['data'] = array_values($category_list);  // 确保是数组而不是对象
+        $list['brand_list'] = $brand_list;
+        $list['label_list'] = $label_list;
+    }
 
         return $this->response($list);
     }

@@ -1,20 +1,20 @@
 <div class="layui-form form-wrap">
 	<div class="layui-form-item">
-		<label class="layui-form-label"><span class="required">*</span>品牌名称：</label>
+		<label class="layui-form-label"><span class="required">*</span>等级名称：</label>
 		<div class="layui-input-inline len-long">
 			<input name="brand_name" type="text" value="{$brand_info['brand_name']}" lay-verify="required" class="layui-input ">
 		</div>
 	</div>
 
 	<div class="layui-form-item">
-		<label class="layui-form-label">品牌简介：</label>
+		<label class="layui-form-label">等级简介：</label>
 		<div class="layui-input-inline">
-			<textarea class="layui-textarea len-long" name="brand_desc" maxlength="100" lay-verify="brand_desc" placeholder="请输入品牌简介，不能超过100个字符">{$brand_info['brand_desc']}</textarea>
+			<textarea class="layui-textarea len-long" name="brand_desc" maxlength="100" lay-verify="brand_desc" placeholder="请输入等级简介，不能超过100个字符">{$brand_info['brand_desc']}</textarea>
 		</div>
 	</div>
 
 	<div class="layui-form-item">
-		<label class="layui-form-label">品牌logo：</label>
+		<label class="layui-form-label">等级logo：</label>
 		<div class="layui-input-block">
 			<input type="hidden" name="brand_id" value="{$brand_info['brand_id']}">
 			<div class="upload-img-block">
@@ -50,7 +50,7 @@
 	</div>
 
 	<div class="layui-form-item">
-		<label class="layui-form-label">品牌广告图：</label>
+		<label class="layui-form-label">等级广告图：</label>
 		<div class="layui-input-block">
 			<div class="upload-img-block">
 				<div class="upload-img-box {notempty name="$brand_info['banner']"}hover{/notempty}">
@@ -107,11 +107,11 @@
 		 * 表单验证
 		 */
 		form.verify({
-			// 品牌简介
+			// 等级简介
 			brand_desc: function (value) {
 				if (value.length > 100) {
 					element.tabChange('goods_tab', "basic");
-					return '品牌简介不能超过100个字符';
+					return '等级简介不能超过100个字符';
 				}
 			},
 			num: function (value) {

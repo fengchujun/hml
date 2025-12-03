@@ -15,7 +15,7 @@
 </style>
 
 <div class="single-filter-box">
-	<button class="layui-btn" onclick="add()">添加笔记</button>
+	<button class="layui-btn" onclick="add()">添加会客厅</button>
 </div>
 <div class="screen layui-collapse" lay-filter="selection_panel">
 	<div class="layui-colla-item">
@@ -24,14 +24,14 @@
 			<div class="layui-form-item">
 
 				<div class="layui-inline">
-					<label class="layui-form-label">笔记名称：</label>
+					<label class="layui-form-label">会客厅名称：</label>
 					<div class="layui-input-inline">
-						<input type="text" name="note_title" placeholder="请输入笔记名称" class="layui-input">
+						<input type="text" name="note_title" placeholder="请输入会客厅名称" class="layui-input">
 					</div>
 				</div>
 
 				<div class="layui-inline">
-					<label class="layui-form-label">笔记类型：</label>
+					<label class="layui-form-label">会客厅类型：</label>
 					<div class="layui-input-inline">
 						<select name="note_type" lay-filter="status">
 							<option value="">全部</option>
@@ -43,7 +43,7 @@
 				</div>
 
 				<div class="layui-inline">
-					<label class="layui-form-label">笔记分组：</label>
+					<label class="layui-form-label">会客厅分组：</label>
 					<div class="layui-input-inline">
 						<select name="group_id" lay-filter="status">
 							<option value="">全部</option>
@@ -204,12 +204,12 @@
 			cols: [
 				[{
 			    	field:'note_title',
-					title: '笔记标题',
+					title: '会客厅标题',
 					unresize: 'false',
 					width: '15%'
 				},{
 					field: 'note_type_name',
-					title: '笔记类型',
+					title: '会客厅类型',
 					unresize: 'false',
 					width: '8%'
 				},  {
@@ -310,7 +310,7 @@
 		 * 删除
 		 */
 		function deleteNotes(note_id) {
-			layer.confirm('确定要删除该笔记吗?', function(index) {
+			layer.confirm('确定要删除该会客厅吗?', function(index) {
 				if (repeat_flag) return;
 				repeat_flag = true;
 				layer.close(index);
@@ -371,16 +371,8 @@
     }
 
 	function add() {
-        var html = $("#addNote").html();
-        laytpl(html).render({}, function (html) {
-            layer.open({
-                type: 1,
-                title: '选择笔记类型',
-				area: ['800px'],
-                //area: ['1300px'],
-                content: html
-            });
-        });
+		// 直接跳转到第一个类型（单品介绍），不显示选择弹窗
+		location.hash = ns.hash('notes://shop/notes/add', {'note_type': 'goods_item'});
 	}
 
 	$("body").off("mouseenter",".goods-type .item-type").on("mouseenter",".goods-type .item-type",function () {
