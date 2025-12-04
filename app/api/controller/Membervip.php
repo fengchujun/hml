@@ -6,6 +6,7 @@
 namespace app\api\controller;
 
 use app\model\member\MemberVip as MemberVipModel;
+use app\model\member\MemberVipDebug as MemberVipDebugModel;
 
 class Membervip extends BaseApi
 {
@@ -79,7 +80,8 @@ class Membervip extends BaseApi
         $token = $this->checkToken();
         if ($token['code'] < 0) return $this->response($token);
 
-        $model = new MemberVipModel();
+        // 临时使用调试模型来定位问题
+        $model = new MemberVipDebugModel();
         $result = $model->getMemberPromoteStats($this->member_id, $this->site_id);
 
         // 如果是特邀会员且没有小程序码，则生成
