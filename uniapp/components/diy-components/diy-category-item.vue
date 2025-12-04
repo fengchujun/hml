@@ -34,13 +34,102 @@
 
 		<block v-if="type == 'goods'">
 			<view class="categoty-goods-wrap" v-if="loadType == 'part'" :style="'padding-top:' + (value.search ? 0 : '20rpx')">
-				<!-- 分类筛选 -->
+<!-- 分类筛选 - 直接展示所有选项 -->
+<block>
+    <view class="filter-content-direct">
+        <!-- 分类筛选 
+        <view class="filter-row">
+            <view class="filter-label">分类：</view>
+            <view class="filter-items">
+                <view class="filter-item" :class="{ selected: categoryId == -1 && filterType == 'category' }" @click="selectCategory(-1)">全部</view>
+                <view class="filter-item" :class="{ selected: categoryId == oneIndex && filterType == 'category' }" @click="selectCategory(oneIndex)" v-for="(one, oneIndex) in category.child_list" :key="oneIndex">
+                    {{ one.category_name }}
+                </view>
+            </view>
+        </view>
+        
+        <!-- 品牌筛选 
+        <view class="filter-row" v-if="brandList && brandList.length">
+            <view class="filter-label">等级：</view>
+            <view class="filter-items">
+                <view class="filter-item" :class="{ selected: brandId == brandIndex && filterType == 'brand' }" @click="selectBrand(brandIndex)" v-for="(brand, brandIndex) in brandList" :key="'brand-' + brandIndex">
+                    {{ brand.brand_name }}
+                </view>
+            </view>
+        </view> -->
+        
+        <!-- 标签筛选 -->
+        <view class="filter-row" v-if="labelList && labelList.length">
+            <view class="filter-label">形态：</view>
+            <view class="filter-items">
+                <view class="filter-item" :class="{ selected: labelId == labelIndex && filterType == 'label' }" @click="selectLabel(labelIndex)" v-for="(label, labelIndex) in labelList" :key="'label-' + labelIndex">
+                    {{ label.label_name }}
+                </view>
+            </view>
+        </view>
+    </view>
+</block>
+				<!--
+			
+				<block v-if="category.child_list && value.goodsLevel == 2">
+					<view class="filter-dropdown-wrap">
+						<view class="filter-header" @click="toggleFilterShow">
+							<text class="filter-title">筛选</text>
+							<text class="iconfont" :class="filterShow ? 'icon-xiangshangzhanhang' : 'icon-unfold'"></text>
+						</view>
+						
+						<view class="filter-content" v-if="filterShow">
+							
+							<view class="filter-row">
+								<view class="filter-label">分类：</view>
+								<view class="filter-items">
+									<view class="filter-item" :class="{ selected: categoryId == -1 && filterType == 'category' }" @click="selectCategory(-1)">全部</view>
+									<view class="filter-item" :class="{ selected: categoryId == oneIndex && filterType == 'category' }" @click="selectCategory(oneIndex)" v-for="(one, oneIndex) in category.child_list" :key="oneIndex">
+										{{ one.category_name }}
+									</view>
+								</view>
+							</view>
+							
+							
+							<view class="filter-row" v-if="brandList && brandList.length">
+								<view class="filter-label">品牌：</view>
+								<view class="filter-items">
+									<view class="filter-item" :class="{ selected: brandId == brandIndex && filterType == 'brand' }" @click="selectBrand(brandIndex)" v-for="(brand, brandIndex) in brandList" :key="'brand-' + brandIndex">
+										{{ brand.brand_name }}
+									</view>
+								</view>
+							</view>
+							
+						
+							<view class="filter-row" v-if="labelList && labelList.length">
+								<view class="filter-label">标签：</view>
+								<view class="filter-items">
+									<view class="filter-item" :class="{ selected: labelId == labelIndex && filterType == 'label' }" @click="selectLabel(labelIndex)" v-for="(label, labelIndex) in labelList" :key="'label-' + labelIndex">
+										{{ label.label_name }}
+									</view>
+								</view>
+							</view>
+						</view>
+					</view>
+				</block>
+				
+				 原来的横向滚动筛选代码（已注释）
 				<block v-if="category.child_list && value.goodsLevel == 2">
 					<view class="screen-category-wrap">
 						<scroll-view scroll-x="true" class="screen-category" :class="{ 'screen-category-4': value.template == 4 }" :scroll-with-animation="true" :scroll-into-view="scrollIntoView">
-							<view class="item" id="category-2--1" :class="{ selected: categoryId == -1 }" @click="selectCategory(-1)">全部</view>
-							<view class="item" :id="'category-2-' + oneIndex" :class="{ selected: categoryId == oneIndex }" @click="selectCategory(oneIndex)" v-for="(one, oneIndex) in category.child_list" :key="oneIndex">
+							<view class="item" id="category-2--1" :class="{ selected: categoryId == -1 && filterType == 'category' }" @click="selectCategory(-1)">全部</view>
+							<view class="item" :id="'category-2-' + oneIndex" :class="{ selected: categoryId == oneIndex && filterType == 'category' }" @click="selectCategory(oneIndex)" v-for="(one, oneIndex) in category.child_list" :key="oneIndex">
 								{{ one.category_name }}
+							</view>
+							<view class="filter-divider" v-if="brandList && brandList.length">|</view>
+							<view class="filter-label" v-if="brandList && brandList.length">品牌：</view>
+							<view class="item" :id="'brand-' + brandIndex" :class="{ selected: brandId == brandIndex && filterType == 'brand' }" @click="selectBrand(brandIndex)" v-for="(brand, brandIndex) in brandList" :key="'brand-' + brandIndex">
+								{{ brand.brand_name }}
+							</view>
+							<view class="filter-divider" v-if="labelList && labelList.length">|</view>
+							<view class="filter-label" v-if="labelList && labelList.length">标签：</view>
+							<view class="item" :id="'label-' + labelIndex" :class="{ selected: labelId == labelIndex && filterType == 'label' }" @click="selectLabel(labelIndex)" v-for="(label, labelIndex) in labelList" :key="'label-' + labelIndex">
+								{{ label.label_name }}
 							</view>
 						</scroll-view>
 						<view class="iconfont icon-unfold" @click="$refs.screenCategoryPopup.open()"></view>
@@ -48,14 +137,30 @@
 					<uni-popup type="top" ref="screenCategoryPopup">
 						<view class="screen-category-popup" @click="$refs.screenCategoryPopup.close()">
 							<scroll-view scroll-y="true" class="screen-category" :class="{ 'screen-category-4': value.template == 4 }">
-								<view class="title">全部</view>
-								<view class="item" :class="{ selected: categoryId == oneIndex }" @click="selectCategory(oneIndex)" v-for="(one, oneIndex) in category.child_list" :key="oneIndex">
+								<view class="title">分类</view>
+								<view class="item" :class="{ selected: categoryId == -1 && filterType == 'category' }" @click="selectCategory(-1)">全部</view>
+								<view class="item" :class="{ selected: categoryId == oneIndex && filterType == 'category' }" @click="selectCategory(oneIndex)" v-for="(one, oneIndex) in category.child_list" :key="oneIndex">
 									{{ one.category_name }}
 								</view>
+								
+								<block v-if="brandList && brandList.length">
+									<view class="title">品牌</view>
+									<view class="item" :class="{ selected: brandId == brandIndex && filterType == 'brand' }" @click="selectBrand(brandIndex)" v-for="(brand, brandIndex) in brandList" :key="'brand-' + brandIndex">
+										{{ brand.brand_name }}
+									</view>
+								</block>
+								
+								<block v-if="labelList && labelList.length">
+									<view class="title">标签</view>
+									<view class="item" :class="{ selected: labelId == labelIndex && filterType == 'label' }" @click="selectLabel(labelIndex)" v-for="(label, labelIndex) in labelList" :key="'label-' + labelIndex">
+										{{ label.label_name }}
+									</view>
+								</block>
 							</scroll-view>
 						</view>
 					</uni-popup>
 				</block>
+				-->
 
 				<scroll-view scroll-y="true" class="scroll-goods-view" lower-threshold="300" :scroll-top="scrollTop" @scrolltolower="scrolltolower" @touchstart="touchstart" @touchend="touchend" @scroll="listenScroll">
 					<view class="goods-list" :data-template="value.template">
@@ -247,6 +352,12 @@
 				type: 'goods',
 				level: 3,
 				categoryId: -1,
+				brandId: -1,          // 选中的品牌索引
+				labelId: -1,          // 选中的标签索引
+				filterType: 'category', // 筛选类型 category/brand/label
+				brandList: [],        // 品牌列表
+				labelList: [],        // 标签列表
+				filterShow: false,    // 筛选区域显示状态
 				loading: false,
 				goodsList: [],
 				pageIndex: 0,
@@ -266,6 +377,9 @@
 			this.type = this.value.template == 1 ? 'category' : 'goods';
 			if (this.index == this.select && this.pageIndex == 0) this.getGoodsList();
 			this.loadType = this.value.goodsLevel == 1 && this.value.loadType == 'all' ? 'all' : 'part';
+			
+			// 获取品牌和标签数据
+			this.getBrandAndLabelList();
 		},
 		mounted() {
 			setTimeout(() => {
@@ -322,6 +436,54 @@
 		},
 		methods: {
 			/**
+			 * 切换筛选区域显示状态
+			 */
+			toggleFilterShow() {
+				this.filterShow = !this.filterShow;
+			},
+			/**
+			 * 获取品牌和标签列表
+			 */
+			getBrandAndLabelList() {
+				this.$api.sendRequest({
+					url: '/api/goodscategory/tree',
+					data: {
+						level: 3
+					},
+					success: res => {
+						if (res.code == 0) {
+							// 数据结构调整：brand_list 和 label_list 现在在顶层
+							this.brandList = res.brand_list || [];
+							this.labelList = res.label_list || [];
+						}
+					}
+				});
+			},
+			/**
+			 * 选择品牌
+			 */
+			selectBrand(index) {
+				this.filterType = 'brand';
+				this.brandId = index;
+				this.categoryId = -1;
+				this.labelId = -1;
+				this.pageIndex = 0;
+				this.totalPage = 1;
+				this.getGoodsList();
+			},
+			/**
+			 * 选择标签
+			 */
+			selectLabel(index) {
+				this.filterType = 'label';
+				this.labelId = index;
+				this.categoryId = -1;
+				this.brandId = -1;
+				this.pageIndex = 0;
+				this.totalPage = 1;
+				this.getGoodsList();
+			},
+			/**
 			 * 查询商品列表
 			 */
 			getGoodsList() {
@@ -355,15 +517,29 @@
 						sort = 'desc';
 					}
 				}
+				
+				// 构建请求参数
+				let requestData = {
+					page: this.pageIndex,
+					page_size: this.pageSize,
+					order: order,
+					sort: sort
+				};
+				
+				// 根据筛选类型设置参数
+				if (this.filterType == 'category') {
+					requestData.category_id = this.categoryId != -1 ? this.category.child_list[this.categoryId].category_id : this.category.category_id;
+				} else if (this.filterType == 'brand') {
+					requestData.category_id = this.category.category_id;
+					requestData.brand_id = this.brandList[this.brandId].brand_id;
+				} else if (this.filterType == 'label') {
+					requestData.category_id = this.category.category_id;
+					requestData.label_id = this.labelList[this.labelId].id;
+				}
+				
 				this.$api.sendRequest({
 					url: '/api/goodssku/pageByCategory',
-					data: {
-						page: this.pageIndex,
-						page_size: this.pageSize,
-						category_id: this.categoryId != -1 ? this.category.child_list[this.categoryId].category_id : this.category.category_id,
-						order: order,
-						sort: sort
-					},
+					data: requestData,
 					success: res => {
 						if (res.code == 0 && res.data) {
 							if (this.pageIndex == 1) this.goodsList = [];
@@ -572,13 +748,13 @@
 				this.$emit('selectsku', data);
 			},
 			selectCategory(index) {
+				this.filterType = 'category';
 				this.categoryId = index;
+				this.brandId = -1;
+				this.labelId = -1;
 				this.pageIndex = 0;
 				this.totalPage = 1;
 				this.getGoodsList();
-				setTimeout(() => {
-					this.scrollIntoView = 'category-2-' + index;
-				});
 			},
 			/**
 			 * 滚动到底部加载
@@ -746,6 +922,116 @@
 				line-height: 1;
 
 				font-size: 24rpx;
+			}
+		}
+	}
+	
+	/* 直接展示筛选样式 */
+	.filter-content-direct {
+	    background: #fff;
+	    border-radius: 8rpx;
+	    padding: 20rpx 0;
+	    margin-bottom: 20rpx;
+	    
+	    .filter-row {
+	        display: flex;
+	        padding: 12rpx 24rpx;
+	        
+	        .filter-label {
+	            flex-shrink: 0;
+	            width: 80rpx;
+	            font-size: 26rpx;
+	            color: #666;
+	            line-height: 70rpx;
+	        }
+	        
+	        .filter-items {
+	            flex: 1;
+	            display: flex;
+	            flex-wrap: wrap;
+	            
+	            .filter-item {
+	                padding: 12rpx 18rpx;
+	                margin: 0 12rpx 12rpx 0;
+	                background: #f5f5f5;
+	                color: #666;
+	                font-size: 26rpx;
+	                border-radius: 8rpx;
+	                transition: all 0.3s;
+	                
+	                &.selected {
+	                    background: $base-color;
+	                    color: var(--btn-text-color);
+	                }
+	            }
+	        }
+	    }
+	}
+	
+	
+	/* 新版下拉式筛选样式 */
+	.filter-dropdown-wrap {
+		background: #fff;
+		border-radius: 8rpx;
+		margin-bottom: 20rpx;
+		overflow: hidden;
+		
+		.filter-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 20rpx 24rpx;
+			background: #f8f8f8;
+			border-bottom: 1rpx solid #eee;
+			
+			.filter-title {
+				font-size: 28rpx;
+				font-weight: bold;
+				color: #333;
+			}
+			
+			.iconfont {
+				font-size: 24rpx;
+				color: #999;
+				transition: transform 0.3s;
+			}
+		}
+		
+		.filter-content {
+			padding: 20rpx 0;
+			
+			.filter-row {
+				display: flex;
+				padding: 12rpx 24rpx;
+				
+				.filter-label {
+					flex-shrink: 0;
+					width: 100rpx;
+					font-size: 26rpx;
+					color: #666;
+					line-height: 60rpx;
+				}
+				
+				.filter-items {
+					flex: 1;
+					display: flex;
+					flex-wrap: wrap;
+					
+					.filter-item {
+						padding: 12rpx 24rpx;
+						margin: 0 12rpx 12rpx 0;
+						background: #f5f5f5;
+						color: #666;
+						font-size: 26rpx;
+						border-radius: 8rpx;
+						transition: all 0.3s;
+						
+						&.selected {
+							background: $base-color;
+							color: var(--btn-text-color);
+						}
+					}
+				}
 			}
 		}
 	}
@@ -1039,62 +1325,6 @@
 		}
 	}
 
-	.screen-category-wrap {
-		display: flex;
-		padding-top: 20rpx;
-		.icon-unfold {
-			font-size: 24rpx;
-			color: #999;
-			padding: 0 0 0 20rpx;
-		}
-	}
-
-	.screen-category {
-		flex: 1;
-		width: 0;
-		padding: 0 0 20rpx 0;
-		white-space: nowrap;
-		height: 60rpx;
-
-		.item {
-			display: inline-block;
-			padding: 4rpx 24rpx;
-			background: #f5f5f5;
-			color: #666;
-			margin-right: 20rpx;
-			border-radius: 40rpx;
-
-			&.selected {
-				background-color: $base-color;
-				color: var(--btn-text-color);
-			}
-		}
-	}
-
-	/deep/ .uni-popup__wrapper-box {
-		border-radius: 0;
-	}
-
-	.screen-category-popup {
-		display: flex;
-
-		.screen-category {
-			white-space: break-spaces;
-			padding: 20rpx;
-			height: auto;
-		}
-
-		.title {
-			line-height: 1;
-			margin-bottom: 20rpx;
-			font-weight: bold;
-		}
-
-		.item {
-			margin-bottom: 20rpx;
-		}
-	}
-
 	.end-tips {
 		text-align: center;
 		color: #999;
@@ -1127,18 +1357,6 @@
 			font-weight: 500;
 			color: #999;
 			margin-top: 50rpx;
-		}
-	}
-
-	.screen-category-4 .item {
-		background-color: #f2f2f2 !important;
-		padding: 10rpx 24rpx;
-		line-height: 1;
-		font-size: $font-size-tag;
-
-		&.selected {
-			background-color: var(--main-color-shallow) !important;
-			color: var(--main-color);
 		}
 	}
 </style>

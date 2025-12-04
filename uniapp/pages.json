@@ -1362,6 +1362,12 @@
 						// #endif
 					}
 				},
+				{
+					"path": "store_notes/reservation",
+					"style": {
+						"navigationBarTitleText": "预约到店体验"
+					}
+				},
 				//******************聊天（4）******************
 				{
 					"path": "chat/room",

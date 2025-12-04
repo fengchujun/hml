@@ -32,52 +32,21 @@
 
 					<!-- #ifdef MP -->
 					<view class="head">
-						<text class="title">
-							获取您的昵称、头像
-							<template v-if="forceBindingMobileControl">、手机号</template>
-						</text>
+						<text class="title">欢迎使用快捷登录</text>
 						<text class="color-tip tips">
-							获取用户头像、昵称
-							<template v-if="forceBindingMobileControl">、手机号</template>
-							完善个人资料，主要用于向用户提供具有辨识度的用户中心界面
+							点击下方按钮，授权手机号即可快速登录
 						</text>
 						<text class="iconfont icon-close color-tip" @click="cancelCompleteInfo"></text>
 					</view>
-					<!-- #ifdef MP-WEIXIN -->
-					<view class="item-wrap">
-						<text class="label">头像</text>
-						<button open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
-							<image :src="avatarUrl ? avatarUrl : $util.getDefaultImage().head" @error="avatarUrl = $util.getDefaultImage().head" mode="aspectFill"/>
-							<text class="iconfont icon-right color-tip"></text>
-						</button>
-					</view>
-					<view class="item-wrap">
-						<text class="label">昵称</text>
-						<input type="nickname" placeholder="请输入昵称" v-model="nickName" @blur="blurNickName" maxlength="50" />
-					</view>
-					<!-- #endif  -->
 
-					<!-- #ifdef MP-ALIPAY -->
-					<view class="item-wrap">
-						<text class="label">头像</text>
-						<button open-type="getAuthorize" scope="userInfo" @getAuthorize="aliappGetUserinfo" :plain="true" class="border-0">
-							<image :src="avatarUrl ? avatarUrl : $util.getDefaultImage().head" @error="avatarUrl = $util.getDefaultImage().head" mode="aspectFill"/>
-							<text class="iconfont icon-right color-tip"></text>
+					<!-- 一键授权手机号快捷登录 -->
+					<view class="phone-auth-wrap">
+						<button open-type="getPhoneNumber" class="phone-auth-btn color-base-bg" @getphonenumber="quickLoginWithPhone">
+							<text>一键授权手机号登录</text>
 						</button>
+						<text class="tips-text">授权后将使用您的手机号自动注册并登录</text>
 					</view>
-					<view class="item-wrap">
-						<text class="label">昵称</text>
-						<input type="nickname" placeholder="请输入昵称" v-model="nickName" @blur="blurNickName" maxlength="50" />
-					</view>
-					<!-- #endif  -->
-					<view class="item-wrap" v-if="forceBindingMobileControl">
-						<text class="label">手机号</text>
-						<button open-type="getPhoneNumber" :plain="true" class="auth-login border-0" @getphonenumber="getPhoneNumber">
-							<text class="mobile" v-if="formData.mobile">{{ formData.mobile }}</text>
-							<text class="color-base-text" v-else>获取手机号</text>
-						</button>
-					</view>
-					<button type="default" class="save-btn" @click="saveMp" :disabled="isDisabled">保存</button>
+
 					<!-- #endif  -->
 				</view>
 			</uni-popup>
@@ -157,8 +126,9 @@
 		computed: {
 			// 控制按钮是否禁用
 			isDisabled() {
+				// 移除昵称的必填验证，允许用户使用默认昵称直接保存
 				// #ifdef MP-WEIXIN
-				if (this.nickName.length == 0) return true;
+				// if (this.nickName.length == 0) return true;
 				// #endif
 
 				// 强制绑定手机号验证
@@ -271,10 +241,6 @@
 			},
 			openCompleteInfoPop() {
 				this.getRegisterConfig();
-
-				// #ifdef H5
-				if (!this.storeToken) this.getCaptchaConfig();
-				// #endif
 
 				this.$refs.completeInfoPopup.open(() => {
 					this.$store.commit('setBottomNavHidden', false); //显示底部导航
@@ -445,15 +411,12 @@
 							this.$store.dispatch('getCartNumber');
 							this.$refs.completeInfoPopup.close();
 							this.$store.commit('setBottomNavHidden', false); // 显示底部导航
-							// 登录成功后重新初始化配置
-							this.$store.dispatch('reInit').then(() => {
-								if (res.data.is_register) {
-									this.$store.commit('setCanReceiveRegistergiftInfo',{status: true,path: this.$util.openRegisterRewardPath('/pages/index/index')});
-									this.$util.loginComplete('/pages/index/index','redirectTo');
-								}
-								
-								// if (res.data.is_register) this.$refs.registerReward.open(this.url);
-							});
+							if (res.data.is_register) {
+								this.$store.commit('setCanReceiveRegistergiftInfo',{status: true,path: this.$util.openRegisterRewardPath('/pages/index/index')});
+								this.$util.loginComplete('/pages/index/index','redirectTo');
+							}
+							
+							// if (res.data.is_register) this.$refs.registerReward.open(this.url);
 						} else {
 							this.isSub = false;
 							this.getCaptcha();
@@ -495,6 +458,69 @@
 					})
 				}
 			},
+			// 一键授权手机号快捷登录
+			quickLoginWithPhone(e) {
+				if (e.detail.errMsg == 'getPhoneNumber:ok') {
+					uni.showLoading({
+						title: '登录中'
+					});
+
+					let authData = uni.getStorageSync('authInfo');
+					let data = {
+						iv: e.detail.iv,
+						encryptedData: e.detail.encryptedData,
+						code: e.detail.code
+					};
+
+					if (authData) Object.assign(data, authData);
+					if (uni.getStorageSync('source_member')) data.source_member = uni.getStorageSync('source_member');
+
+					this.$api.sendRequest({
+						url: '/api/tripartite/mobileauth',
+						data,
+						success: res => {
+							if (res.code >= 0) {
+								this.$store.commit('setToken', res.data.token);
+								this.getMemberInfo();
+								this.$store.dispatch('getCartNumber');
+								this.cancelCompleteInfo();
+
+								if (res.data.is_register) {
+									// 新用户注册成功
+									this.$store.commit('setCanReceiveRegistergiftInfo', {
+										status: true,
+										path: this.$util.openRegisterRewardPath('/pages/index/index')
+									});
+									this.$util.loginComplete('/pages/index/index', {}, 'redirectTo');
+								} else {
+									// 老用户直接登录
+									if (this.url) this.$util.loginComplete(this.url, {}, 'redirectTo');
+									else this.$util.loginComplete('/pages/member/index/index', {}, 'redirectTo');
+								}
+
+								setTimeout(() => {
+									uni.hideLoading();
+								}, 1000);
+							} else {
+								uni.hideLoading();
+								this.$util.showToast({
+									title: res.message
+								});
+							}
+						},
+						fail: () => {
+							uni.hideLoading();
+							this.$util.showToast({
+								title: '登录失败，请重试'
+							});
+						}
+					});
+				} else {
+					this.$util.showToast({
+						title: '取消授权将无法登录'
+					});
+				}
+			},
 			// 微信小程序强制绑定手机号
 			bindMobile() {
 				let data = this.authMobileData;
@@ -511,15 +537,12 @@
 							this.$store.commit('setToken', res.data.token);
 							this.getMemberInfo();
 							this.$store.dispatch('getCartNumber');
-							// 登录成功后重新初始化配置
-							this.$store.dispatch('reInit').then(() => {
-								this.cancelCompleteInfo();
-								if (res.data.is_register) {
-									this.$store.commit('setCanReceiveRegistergiftInfo',{status: true,path:this.$util.openRegisterRewardPath('/pages/index/index')});
-									this.$util.loginComplete('/pages/index/index','redirectTo');
-								}
-								// if (res.data.is_register) this.$refs.registerReward.open(this.url);
-							});
+							this.cancelCompleteInfo();
+							if (res.data.is_register) {
+								this.$store.commit('setCanReceiveRegistergiftInfo',{status: true,path:this.$util.openRegisterRewardPath('/pages/index/index')});
+								this.$util.loginComplete('/pages/index/index','redirectTo');
+							}
+							// if (res.data.is_register) this.$refs.registerReward.open(this.url);
 						} else {
 							this.$util.showToast({
 								title: res.message
@@ -550,33 +573,30 @@
 							this.$store.commit('setToken', res.data.token);
 							this.getMemberInfo();
 							this.$store.dispatch('getCartNumber');
-							// 登录成功后重新初始化配置
-							this.$store.dispatch('reInit').then(() => {
-								if (res.data.is_register){
-									this.$store.commit('setCanReceiveRegistergiftInfo',{status: true,path:this.$util.openRegisterRewardPath('/pages/index/index')});
-									this.$util.loginComplete('/pages/index/index','redirectTo');
-									// this.$refs.registerReward.open(this.url);
-								}else{
-									// if(this.url) this.$util.redirectTo(this.url,{},'redirectTo')
-									// else this.$util.redirectTo('/pages/member/index',{},'redirectTo')
-									if(this.url) this.$util.loginComplete(this.url,{},'redirectTo');
-									else this.$util.loginComplete('/pages/member/index/index',{},'redirectTo')
-								}
-								this.cancelCompleteInfo();
-							});
-							
+							if (res.data.is_register){
+								this.$store.commit('setCanReceiveRegistergiftInfo',{status: true,path:this.$util.openRegisterRewardPath('/pages/index/index')});
+								this.$util.loginComplete('/pages/index/index','redirectTo');
+								// this.$refs.registerReward.open(this.url);
+							}else{
+								// if(this.url) this.$util.redirectTo(this.url,{},'redirectTo')
+								// else this.$util.redirectTo('/pages/member/index',{},'redirectTo')
+								if(this.url) this.$util.loginComplete(this.url,{},'redirectTo');
+								else this.$util.loginComplete('/pages/member/index/index',{},'redirectTo')
+							}
+							this.cancelCompleteInfo();
+
 							setTimeout(() => {
 								uni.hideLoading();
 							}, 1000);
 						} else if (res.data == 'MEMBER_NOT_EXIST') {
 							this.getRegisterConfig(() => {
 								uni.hideLoading();
-								if (this.registerConfig.third_party == 1 && this.registerConfig.bind_mobile == 1) {
+								// 如果开启第三方注册，则打开完善信息弹窗（已预填充默认昵称和头像）
+								if (this.registerConfig.third_party == 1) {
 									this.openCompleteInfoPop();
 								} else if (this.registerConfig.third_party == 0) {
+									// 如果关闭第三方注册，跳转到登录页
 									this.toLogin();
-								} else {
-									this.openCompleteInfoPop();
 								}
 							});
 						} else {
@@ -612,16 +632,14 @@
 			},
 			// 微信小程序保存数据
 			saveMp() {
+				// 如果昵称为空，使用默认昵称
 				if (this.nickName.length == 0) {
-					this.$util.showToast({
-						title: '请输入昵称'
-					});
-					return;
+					this.nickName = '微信用户' + Math.random().toString(36).substr(2, 6);
 				}
 				let authData = uni.getStorageSync('authInfo');
 				if (authData) Object.assign(authData, {
 					nickName: this.nickName,
-					avatarUrl: this.headImg
+					avatarUrl: this.headImg ? this.headImg : ''  // 如果没有上传头像，使用空字符串，后端会使用默认头像
 				});
 				uni.setStorageSync('authInfo', authData);
 
@@ -724,11 +742,20 @@
 				display: flex;
 				align-items: center;
 				padding: 16rpx 0;
+				flex-wrap: wrap;
 
 				.label {
 					font-size: $font-size-toolbar;
 					margin-right: 40rpx;
 					width: 100rpx;
+				}
+
+				.tips-small {
+					width: 100%;
+					font-size: 24rpx;
+					color: #999;
+					margin-top: 8rpx;
+					padding-left: 140rpx;
 				}
 
 				button {
@@ -794,6 +821,37 @@
 				background-color: #07c160;
 				color: #fff;
 				margin: 40rpx auto 20rpx;
+			}
+
+			.phone-auth-wrap {
+				padding: 60rpx 0 40rpx;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+
+				.phone-auth-btn {
+					width: 500rpx;
+					height: 88rpx;
+					line-height: 88rpx;
+					border-radius: 44rpx;
+					color: #fff;
+					font-size: 32rpx;
+					text-align: center;
+					margin: 0;
+					padding: 0;
+					border: none;
+
+					text {
+						color: #fff;
+					}
+				}
+
+				.tips-text {
+					margin-top: 30rpx;
+					font-size: 24rpx;
+					color: #999;
+					text-align: center;
+				}
 			}
 		}
 	}

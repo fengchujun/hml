@@ -50,9 +50,9 @@
 			<view class="btn_view">
 				<button type="primary" @click="login" class="login-btn color-base-border color-base-bg">登录</button>
 				<!-- #ifdef MP -->
-				<!-- <button open-type="getPhoneNumber" class="auth-login color-base-border" v-if="Number(registerConfig.third_party)" @getphonenumber="mobileAuthLogin">
-					<text class="color-base-text color-base-border">一键授权手机号快捷登录</text>
-				</button> -->
+				<button open-type="getPhoneNumber" class="auth-login color-base-border" v-if="Number(registerConfig.third_party)" @getphonenumber="mobileAuthLogin">
+					<text class="color-base-text color-base-border">一键授权手机号登录</text>
+				</button>
 				<!-- #endif -->
 			</view>
 			<view class="regisiter-agreement" v-if="registerConfig.agreement_show">
@@ -234,21 +234,16 @@
 								this.$store.commit('setToken', res.data.token);
 								this.$store.dispatch('getCartNumber');
 								this.getMemberInfo(() => {
-									// 登录成功后重新初始化配置
-									this.$store.dispatch('reInit').then(() => {
-										if (can_receive_registergift == 1) {
-											let back = this.back ? this.back : '/pages/member/index';
-											this.$store.commit('setCanReceiveRegistergiftInfo', {status: true,path:this.$util.openRegisterRewardPath(back)});
-											// if(this.$refs.registerReward) this.$refs.registerReward.open(back);
-										}
-										if (this.back != '') {
-											this.$util.loginComplete(this.back,{},this.redirect);
-										} else {
-											this.$util.loginComplete('/pages/member/index',{},this.redirect);
-										}
-									});
-								})
-
+									if (can_receive_registergift == 1) {
+										this.$util.showToast({
+											title: '登录成功'
+										});
+										
+										this.$store.commit('setCanReceiveRegistergiftInfo',{status: true,path:this.$util.openRegisterRewardPath('/pages/member/index')});
+										// if(this.$refs.registerReward) this.$refs.registerReward.open(back);
+									}
+									this.$util.loginComplete('/pages/member/index',{},this.redirect);
+								});
 							} else {
 								this.isSub = false;
 								this.getCaptcha();
@@ -335,11 +330,16 @@
 			},
 			mobileAuthLogin(e) {
 				if (e.detail.errMsg == 'getPhoneNumber:ok') {
+					uni.showLoading({
+						title: '登录中'
+					});
+
 					var data = {
 						iv: e.detail.iv,
-						encryptedData: e.detail.encryptedData
+						encryptedData: e.detail.encryptedData,
+						code: e.detail.code
 					};
-					if (Object.keys(this.authInfo).length) {
+					if (this.authInfo && Object.keys(this.authInfo).length) {
 						Object.assign(data, this.authInfo);
 						if (this.authInfo.nickName) data.nickname = this.authInfo.nickName;
 						if (this.authInfo.avatarUrl) data.headimg = this.authInfo.avatarUrl;
@@ -358,23 +358,24 @@
 								this.$store.commit('setToken', res.data.token);
 								this.$store.dispatch('getCartNumber');
 								this.getMemberInfo(() => {
-									// 登录成功后重新初始化配置
-									this.$store.dispatch('reInit').then(() => {
-										if (can_receive_registergift == 1) {
-											let back = this.back ? this.back : '/pages/member/index';
-											this.$store.commit('setCanReceiveRegistergiftInfo', {status: true,path:this.$util.openRegisterRewardPath(back)});
-											// if(this.$refs.registerReward) this.$refs.registerReward.open(back);
-										}
-										if (this.back != '') {
-											this.$util.loginComplete(this.back,{},this.redirect);
-										} else {
-											this.$util.loginComplete('/pages/member/index',{},this.redirect);
-										}
-									});
+									if (can_receive_registergift == 1) {
+										let back = this.back ? this.back : '/pages/member/index';
+										this.$store.commit('setCanReceiveRegistergiftInfo', {status: true,path:this.$util.openRegisterRewardPath(back)});
+										// if(this.$refs.registerReward) this.$refs.registerReward.open(back);
+									}
+									if (this.back != '') {
+										this.$util.loginComplete(this.back,{},this.redirect);
+									} else {
+										this.$util.loginComplete('/pages/member/index',{},this.redirect);
+									}
+									setTimeout(() => {
+										uni.hideLoading();
+									}, 500);
 								})
 
 							} else {
 								this.isSub = false;
+								uni.hideLoading();
 								this.$util.showToast({
 									title: res.message
 								});
@@ -382,10 +383,15 @@
 						},
 						fail: res => {
 							this.isSub = false;
+							uni.hideLoading();
 							this.$util.showToast({
-								title: 'request:fail'
+								title: '登录失败，请重试'
 							});
 						}
+					});
+				} else {
+					this.$util.showToast({
+						title: '取消授权将无法快速登录'
 					});
 				}
 			},

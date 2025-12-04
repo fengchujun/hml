@@ -50,7 +50,6 @@
 				}
 			});
 
-			this.$store.dispatch('init');
 
 			// 存储到store中
 
@@ -108,6 +107,7 @@
 				this.$store.commit('setToken', uni.getStorageSync('token'));
 			}
 
+			this.$store.dispatch('init');
 			// 会员信息
 			if (uni.getStorageSync('memberInfo')) {
 				this.$store.commit('setMemberInfo', uni.getStorageSync('memberInfo'));
@@ -137,28 +137,86 @@
 			// #ifdef MP-ALIPAY
 			if (options.query && options.query.m) uni.setStorageSync('source_member', options.query.m);
 			// #endif
-		},
-		onShow: function(options) {
-			// #ifdef MP
-			// 自动授权登录
-			if (this.$store.state.token) {
-				this.$api.sendRequest({
-					url: '/api/member/info',
-					success: (res) => {
-						if (res.code >= 0) {
-							this.$store.commit('setMemberInfo', res.data);
-						}
-					}
-				});
-			}else{
-				this.getAuthInfo();
-			}
-			// #endif
 
-			// #ifdef MP-ALIPAY
-			if (options.query && options.query.m) uni.setStorageSync('source_member', options.query.m);
-			// #endif
+		// 处理分享进来的推荐人参数（小程序启动时）
+		// #ifdef MP-WEIXIN
+		if (options.query && options.query.source_member) {
+			uni.setStorageSync('source_member', options.query.source_member);
+			// 标记需要登录检查（在第一个页面加载时会检查）
+			if (!uni.getStorageSync('token')) {
+				uni.setStorageSync('needLoginCheck', '1');
+			}
+		}
+		// #endif
 		},
+	onShow: function(options) {
+		// #ifdef MP
+		// 处理分享进来的推荐人参数
+		if (options && options.query) {
+			// 微信小程序使用 source_member
+			if (options.query.source_member) {
+				uni.setStorageSync('source_member', options.query.source_member);
+				// 如果未登录，需要先登录
+				if (!this.$store.state.token) {
+					// 保存当前要访问的页面路径（用于登录后跳转回来）
+					let currentPath = this.$util.getCurrentRoute().path;
+					if (currentPath && currentPath != '/pages_tool/login/index' && currentPath != '/pages_tool/login/login') {
+						uni.setStorageSync('initiateLogin', currentPath);
+						// 延迟跳转，确保页面已经加载
+						setTimeout(() => {
+							this.$util.redirectTo('/pages_tool/login/index');
+						}, 500);
+						return;
+					}
+				}
+			}
+			// 支付宝小程序使用 m
+			if (options.query.m) {
+				uni.setStorageSync('source_member', options.query.m);
+				// 如果未登录，需要先登录
+				if (!this.$store.state.token) {
+					let currentPath = this.$util.getCurrentRoute().path;
+					if (currentPath && currentPath != '/pages_tool/login/index' && currentPath != '/pages_tool/login/login') {
+						uni.setStorageSync('initiateLogin', currentPath);
+						setTimeout(() => {
+							this.$util.redirectTo('/pages_tool/login/index');
+						}, 500);
+						return;
+					}
+				}
+			}
+		}
+
+		// 检查启动时的登录标志（处理onLaunch时设置的标志）
+		if (uni.getStorageSync('needLoginCheck') == '1') {
+			uni.removeStorageSync('needLoginCheck');
+			if (!this.$store.state.token) {
+				let currentPath = this.$util.getCurrentRoute().path;
+				if (currentPath && currentPath != '/pages_tool/login/index' && currentPath != '/pages_tool/login/login') {
+					uni.setStorageSync('initiateLogin', currentPath);
+					setTimeout(() => {
+						this.$util.redirectTo('/pages_tool/login/index');
+					}, 500);
+					return;
+				}
+			}
+		}
+
+		// 自动授权登录
+		if (this.$store.state.token) {
+			this.$api.sendRequest({
+				url: '/api/member/info',
+				success: (res) => {
+					if (res.code >= 0) {
+						this.$store.commit('setMemberInfo', res.data);
+					}
+				}
+			});
+		}else{
+			this.getAuthInfo();
+		}
+		// #endif
+	},
 		onHide: function() {},
 		methods: {
 			/**
@@ -226,6 +284,7 @@
 							this.$store.commit('setToken', res.data.token);
 							this.getMemberInfo()
 							this.$store.dispatch('getCartNumber');
+							this.$store.dispatch('init');
 						}
 					}
 				});
@@ -278,6 +337,7 @@
 						if (res.code >= 0) {
 							// 登录成功，存储会员信息
 							this.$store.commit('setMemberInfo', res.data);
+							this.$store.dispatch('init');
 						}
 					}
 				});

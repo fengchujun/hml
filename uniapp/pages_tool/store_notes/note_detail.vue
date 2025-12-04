@@ -1,37 +1,26 @@
 <template>
 	<page-meta :page-style="themeColor"></page-meta>
+	<!-- 设置导航标题为会客厅标题 -->
 	<view class="goods-detail">
 		<view class="goods-item" v-if="noteType == 'goods_item'">
-			<image class="item-img" :src="$util.img(goodsItemInfo.goods_image)" @error="imageError()" mode="aspectFit"/>
-			<text class="item-title" v-if="goodsItemInfo.is_show_release_time == 1">{{ goodsItemInfo.note_title }}</text>
-			<view class="item-lightspot" v-if="goodsItemInfo.goods_highlights.length">
-				<text v-for="(item, index) in goodsItemInfo.goods_highlights" :key="index" class="color-base-bg">{{ item }}</text>
-			</view>
-			<text class="item-time" v-if="goodsItemInfo.is_show_release_time == 1">{{ $util.timeStampTurnTime(goodsItemInfo.create_time, 'Y-m-d') }}</text>
+			<!-- 只显示会客厅内容 -->
 			<view class="item-content">
-				<!-- <rich-text :nodes="goodsItemInfo.note_content"></rich-text> -->
 				<ns-mp-html :content="goodsItemInfo.note_content"></ns-mp-html>
 			</view>
-			<view class="rest-info">
-				<text v-if="goodsItemInfo.is_show_read_num == 1">
-					阅读
-					<text>{{ goodsItemInfo.initial_read_num + goodsItemInfo.read_num }}</text>
-				</text>
-				<text v-if="goodsItemInfo.is_show_dianzan_num == 1" @click="giveLike">
-					<text class="iconfont icon-likefill color-base-text" v-if="giveLikeIdent"></text>
-					<text class="iconfont icon-gz" v-if="!giveLikeIdent"></text>
-					<text>{{ goodsItemInfo.initial_dianzan_num + goodsItemInfo.dianzan_num }}</text>
-				</text>
-			</view>
-			<view class="item-action">
-				<view class="action-left">
-					<text @click="giveLike" v-if="!giveLikeIdent" class="iconfont icon-dianzan"></text>
-					<text @click="giveLike" v-if="giveLikeIdent" class="iconfont icon-dianzan1 active color-base-text"></text>
-					<!-- #ifdef MP -->
-					<button type="primary" open-type="share" class="iconfont icon-share"></button>
-					<!-- #endif -->
+
+			<!-- 底部浮层：微信、电话、预约到店体验 -->
+			<view class="lounge-actions">
+				<view class="action-btn" @click="showWechatQrcode" v-if="goodsItemInfo.wechat_qrcode">
+					<text class="iconfont iconweixin"></text>
+					<text>微信</text>
 				</view>
-				<button class="color-base-bg action-right" @click="redirectToGoods(goodsItemInfo)" v-if="goodsItemInfo.goods_list.length">购买</button>
+				<view class="action-btn" @click="callPhone" v-if="goodsItemInfo.phone">
+					<text class="iconfont icondianhua"></text>
+					<text>电话</text>
+				</view>
+				<view class="action-btn action-primary" @click="makeReservation" v-if="goodsItemInfo.support_reservation == 1">
+					<text>预约到店体验</text>
+				</view>
 			</view>
 		</view>
 		<!-- 掌柜说 -->
@@ -95,7 +84,9 @@
 				giveLikeIdent: false,
 				giveLikeFlag: false,
 				//分享时详情所用图片
-				shareImg: ''
+				shareImg: '',
+				// 二维码弹窗标志
+				showQrcodeModal: false
 			};
 		},
 		onLoad(options) {
@@ -137,6 +128,12 @@
 			}
 		},
 		onShow() {
+			
+					if (this.noteType == 'goods_item' && this.goodsItemInfo.note_title) {
+						uni.setNavigationBarTitle({
+							title: this.goodsItemInfo.note_title || '会客厅详情'
+						});
+					}
 			if (this.storeToken) {
 				//记录分享关系
 				if (uni.getStorageSync('source_member')) {
@@ -185,6 +182,12 @@
 					success: res => {
 						if (res.code == 0 && res.data) {
 							this.noteType = res.data.note_type;
+
+							// 设置导航栏标题为笔记标题
+							uni.setNavigationBarTitle({
+								title: res.data.note_title || (this.noteType == 'goods_item' ? '会客厅详情' : '笔记详情')
+							});
+
 							if (this.noteType == 'goods_item') {
 								this.goodsItemInfo = res.data;
 
@@ -277,6 +280,34 @@
 			imageError() {
 				if (this.goodsItemInfo.goods_image) this.goodsItemInfo.goods_image = this.$util.getDefaultImage().goods;
 				this.$forceUpdate();
+			},
+			/* 显示微信二维码 */
+			showWechatQrcode() {
+				const qrcodeUrl = this.$util.img(this.goodsItemInfo.wechat_qrcode);
+				uni.previewImage({
+					current: 0,
+					urls: [qrcodeUrl]
+				});
+			},
+			/* 拨打电话 */
+			callPhone() {
+				uni.showModal({
+					title: '提示',
+					content: '是否拨打电话：' + this.goodsItemInfo.phone,
+					success: (res) => {
+						if (res.confirm) {
+							uni.makePhoneCall({
+								phoneNumber: this.goodsItemInfo.phone
+							});
+						}
+					}
+				});
+			},
+			/* 预约到店体验 */
+			makeReservation() {
+				this.$util.redirectTo('/pages_tool/store_notes/reservation', {
+					note_id: this.noteId
+				});
 			}
 		}
 	};
@@ -296,6 +327,56 @@
 
 			rich-text {
 				word-wrap: break-word;
+			}
+		}
+
+		/* 会客厅底部浮层样式 */
+		.lounge-actions {
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			display: flex;
+			justify-content: space-around;
+			align-items: center;
+			padding: 20rpx 24rpx;
+			background-color: #fff;
+			box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
+			z-index: 999;
+
+			.action-btn {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				padding: 15rpx 30rpx;
+				border: 2rpx solid #ddd;
+				border-radius: 10rpx;
+				min-width: 120rpx;
+
+				.iconfont {
+					font-size: 40rpx;
+					margin-bottom: 8rpx;
+					color: #333;
+				}
+
+				text {
+					font-size: 24rpx;
+					color: #333;
+				}
+			}
+
+			.action-primary {
+				flex: 1;
+				margin-left: 20rpx;
+				background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+				border: none;
+
+				text {
+					font-size: 28rpx;
+					color: #fff;
+					font-weight: bold;
+				}
 			}
 		}
 

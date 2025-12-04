@@ -366,24 +366,24 @@ export default {
 	},
 	'black': {
 		name: 'black',
-		main_color: '#452e31',
+		main_color: '#222222',
 		aux_color: '#FFFFFF',
-		bg_color: '#452e31',//主题背景
+		bg_color: '#222222',//主题背景
 		bg_color_shallow: '#333333',//主题背景渐变浅色
-		promotion_color: '#452e31',//活动背景
+		promotion_color: '#222222',//活动背景
 		promotion_aux_color: '#FA8B00',//活动背景辅色
 		main_color_shallow: '#efefef',//淡背景
 		price_color: '#c8a063',//价格颜色
 		btn_text_color: '#FFFFFF',//按钮文字颜色
 		goods_detail: {
 			goods_price: '#c8a063',//价格
-			promotion_tag: '#452e31',
+			promotion_tag: '#222222',
 			goods_card_bg: '#201A18',//会员卡背景
 			goods_card_bg_shallow: '#7C7878',//会员卡背景浅色
 			goods_card_color: '#FFD792',
-			goods_coupon: '#452e31',
+			goods_coupon: '#222222',
 			goods_cart_num_corner: '#FF0000',//购物车数量角标
-			goods_btn_color: '#452e31',//按钮颜色
+			goods_btn_color: '#222222',//按钮颜色
 			goods_btn_color_shallow: '#FA8B00',//副按钮颜色
 		},
 		pintuan: {

@@ -1,8 +1,8 @@
 {
     "name" : "华木兰",
-    "appid" : "__UNI__E7E3AEB",
+    "appid" : "__UNI__54B1F9F",
     "description" : "",
-    "versionName" : "1.0.1",
+    "versionName" : "1.0.0",
     "versionCode" : "100",
     "transformPx" : false,
     "sassImplementationName" : "node-sass",

@@ -1,9 +1,9 @@
 <template>
 	<view :style="value.pageStyle">
-		<video class="diy-video" :src="$util.img(value.videoUrl)" :poster="$util.img(value.imageUrl)" :style="videoWarpCss"  objectFit="cover"></video>
+		<video class="diy-video" :src="$util.img(value.videoUrl)" :poster="$util.img(value.imageUrl)" :style="videoWarpCss"  objectFit="cover" :autoplay="value.autoplay || false" :muted="value.muted || false" :loop="value.loop || true"></video>
 	</view>
 </template>
-
+        
 <script>
 	// 视频
 	export default {
