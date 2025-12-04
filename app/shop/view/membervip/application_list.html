@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>特邀会员申请审核</title>
+	<style>
+		.ns-table-th-fixed {
+			background: #f5f7fa;
+		}
+
+		.status-badge {
+			display: inline-block;
+			padding: 4px 12px;
+			border-radius: 4px;
+			font-size: 12px;
+			font-weight: 500;
+		}
+
+		.status-badge.pending {
+			background: #fff3cd;
+			color: #856404;
+		}
+
+		.status-badge.approved {
+			background: #d1ecf1;
+			color: #0c5460;
+		}
+
+		.status-badge.rejected {
+			background: #f8d7da;
+			color: #721c24;
+		}
+
+		.action-btn {
+			margin-right: 5px;
+			padding: 5px 12px;
+			border-radius: 3px;
+			cursor: pointer;
+			font-size: 12px;
+		}
+
+		.btn-approve {
+			background: #28a745;
+			color: #fff;
+			border: none;
+		}
+
+		.btn-approve:hover {
+			background: #218838;
+		}
+
+		.btn-reject {
+			background: #dc3545;
+			color: #fff;
+			border: none;
+		}
+
+		.btn-reject:hover {
+			background: #c82333;
+		}
+
+		.search-bar {
+			margin-bottom: 20px;
+			padding: 15px;
+			background: #f5f7fa;
+			border-radius: 4px;
+		}
+
+		.search-bar select,
+		.search-bar input {
+			margin-right: 10px;
+			padding: 8px 12px;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+		}
+
+		.search-bar button {
+			padding: 8px 20px;
+			background: #007bff;
+			color: #fff;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+		}
+
+		.search-bar button:hover {
+			background: #0056b3;
+		}
+
+		.modal {
+			display: none;
+			position: fixed;
+			z-index: 1000;
+			left: 0;
+			top: 0;
+			width: 100%;
+			height: 100%;
+			overflow: auto;
+			background-color: rgba(0,0,0,0.4);
+		}
+
+		.modal-content {
+			background-color: #fefefe;
+			margin: 10% auto;
+			padding: 20px;
+			border: 1px solid #888;
+			width: 500px;
+			border-radius: 8px;
+		}
+
+		.modal-close {
+			color: #aaa;
+			float: right;
+			font-size: 28px;
+			font-weight: bold;
+			cursor: pointer;
+		}
+
+		.modal-close:hover {
+			color: #000;
+		}
+
+		.modal-body textarea {
+			width: 100%;
+			height: 120px;
+			padding: 10px;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			resize: vertical;
+		}
+
+		.modal-footer {
+			margin-top: 20px;
+			text-align: right;
+		}
+
+		.modal-footer button {
+			margin-left: 10px;
+			padding: 8px 20px;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+		}
+	</style>
+</head>
+<body>
+<div id="app" style="padding: 20px;">
+	<h2>特邀会员申请审核</h2>
+
+	<!-- 搜索栏 -->
+	<div class="search-bar">
+		<select v-model="searchParams.status" @change="loadData">
+			<option value="">全部状态</option>
+			<option value="0">待审核</option>
+			<option value="1">审核通过</option>
+			<option value="-1">审核拒绝</option>
+		</select>
+		<input type="text" v-model="searchParams.search_text" placeholder="搜索会员昵称/手机号" />
+		<button @click="loadData">搜索</button>
+	</div>
+
+	<!-- 数据表格 -->
+	<table class="layui-table" lay-skin="line">
+		<thead>
+			<tr class="ns-table-th-fixed">
+				<th>申请ID</th>
+				<th>申请人</th>
+				<th>手机号</th>
+				<th>真实姓名</th>
+				<th>邀请人</th>
+				<th>申请时间</th>
+				<th>审核状态</th>
+				<th>审核时间</th>
+				<th>审核意见</th>
+				<th style="width: 180px;">操作</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr v-for="item in dataList" :key="item.application_id">
+				<td>{{ item.application_id }}</td>
+				<td>{{ item.member_nickname }}</td>
+				<td>{{ item.member_mobile }}</td>
+				<td>{{ item.realname }}</td>
+				<td>{{ item.inviter_nickname }}</td>
+				<td>{{ formatTime(item.create_time) }}</td>
+				<td>
+					<span class="status-badge" :class="getStatusClass(item.status)">
+						{{ getStatusText(item.status) }}
+					</span>
+				</td>
+				<td>{{ formatTime(item.audit_time) }}</td>
+				<td>{{ item.audit_remark || '-' }}</td>
+				<td>
+					<button v-if="item.status === 0"
+						class="action-btn btn-approve"
+						@click="approveApplication(item)">
+						通过
+					</button>
+					<button v-if="item.status === 0"
+						class="action-btn btn-reject"
+						@click="showRejectModal(item)">
+						拒绝
+					</button>
+					<span v-if="item.status !== 0">已处理</span>
+				</td>
+			</tr>
+			<tr v-if="dataList.length === 0">
+				<td colspan="10" style="text-align: center; color: #999;">暂无数据</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<!-- 分页 -->
+	<div id="pagination"></div>
+
+	<!-- 拒绝理由弹窗 -->
+	<div id="rejectModal" class="modal">
+		<div class="modal-content">
+			<span class="modal-close" @click="closeRejectModal">&times;</span>
+			<h3>拒绝申请</h3>
+			<div class="modal-body">
+				<p><strong>申请人：</strong>{{ currentApplication.member_nickname }}</p>
+				<p><strong>真实姓名：</strong>{{ currentApplication.realname }}</p>
+				<p style="margin-top: 15px;"><strong>拒绝原因：</strong></p>
+				<textarea v-model="rejectRemark" placeholder="请输入拒绝原因（必填）"></textarea>
+			</div>
+			<div class="modal-footer">
+				<button @click="closeRejectModal" style="background: #6c757d; color: #fff;">取消</button>
+				<button @click="confirmReject" style="background: #dc3545; color: #fff;">确认拒绝</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="__STATIC__/common/js/vue.min.js"></script>
+<script src="__STATIC__/common/js/layui/layui.js"></script>
+<script>
+	layui.use(['layer', 'laypage'], function() {
+		var layer = layui.layer;
+		var laypage = layui.laypage;
+
+		new Vue({
+			el: '#app',
+			data: {
+				dataList: [],
+				searchParams: {
+					status: '',
+					search_text: ''
+				},
+				pagination: {
+					page: 1,
+					page_size: 20,
+					total: 0
+				},
+				currentApplication: {},
+				rejectRemark: ''
+			},
+			mounted() {
+				this.loadData();
+			},
+			methods: {
+				/**
+				 * 加载数据
+				 */
+				loadData() {
+					var _this = this;
+					layer.load(2);
+
+					$.ajax({
+						url: '__URL__/shop/membervip/applicationList',
+						type: 'POST',
+						dataType: 'json',
+						data: {
+							page: _this.pagination.page,
+							page_size: _this.pagination.page_size,
+							status: _this.searchParams.status,
+							search_text: _this.searchParams.search_text
+						},
+						success: function(res) {
+							layer.closeAll('loading');
+							if (res.code >= 0) {
+								_this.dataList = res.data.list || [];
+								_this.pagination.total = res.data.count || 0;
+								_this.renderPagination();
+							} else {
+								layer.msg(res.message);
+							}
+						},
+						error: function() {
+							layer.closeAll('loading');
+							layer.msg('加载失败，请重试');
+						}
+					});
+				},
+
+				/**
+				 * 渲染分页
+				 */
+				renderPagination() {
+					var _this = this;
+					laypage.render({
+						elem: 'pagination',
+						count: _this.pagination.total,
+						limit: _this.pagination.page_size,
+						curr: _this.pagination.page,
+						layout: ['count', 'prev', 'page', 'next', 'skip'],
+						jump: function(obj, first) {
+							if (!first) {
+								_this.pagination.page = obj.curr;
+								_this.loadData();
+							}
+						}
+					});
+				},
+
+				/**
+				 * 审核通过
+				 */
+				approveApplication(item) {
+					var _this = this;
+					layer.confirm('确认通过该申请吗？', {
+						icon: 3,
+						title: '提示'
+					}, function(index) {
+						layer.close(index);
+						layer.load(2);
+
+						$.ajax({
+							url: '__URL__/shop/membervip/approve',
+							type: 'POST',
+							dataType: 'json',
+							data: {
+								application_id: item.application_id
+							},
+							success: function(res) {
+								layer.closeAll('loading');
+								if (res.code >= 0) {
+									layer.msg('审核成功', {icon: 1});
+									_this.loadData();
+								} else {
+									layer.msg(res.message, {icon: 2});
+								}
+							},
+							error: function() {
+								layer.closeAll('loading');
+								layer.msg('操作失败，请重试', {icon: 2});
+							}
+						});
+					});
+				},
+
+				/**
+				 * 显示拒绝弹窗
+				 */
+				showRejectModal(item) {
+					this.currentApplication = item;
+					this.rejectRemark = '';
+					document.getElementById('rejectModal').style.display = 'block';
+				},
+
+				/**
+				 * 关闭拒绝弹窗
+				 */
+				closeRejectModal() {
+					document.getElementById('rejectModal').style.display = 'none';
+					this.currentApplication = {};
+					this.rejectRemark = '';
+				},
+
+				/**
+				 * 确认拒绝
+				 */
+				confirmReject() {
+					var _this = this;
+
+					if (!_this.rejectRemark || _this.rejectRemark.trim() === '') {
+						layer.msg('请输入拒绝原因', {icon: 0});
+						return;
+					}
+
+					layer.load(2);
+
+					$.ajax({
+						url: '__URL__/shop/membervip/reject',
+						type: 'POST',
+						dataType: 'json',
+						data: {
+							application_id: _this.currentApplication.application_id,
+							remark: _this.rejectRemark
+						},
+						success: function(res) {
+							layer.closeAll('loading');
+							if (res.code >= 0) {
+								layer.msg('审核已拒绝', {icon: 1});
+								_this.closeRejectModal();
+								_this.loadData();
+							} else {
+								layer.msg(res.message, {icon: 2});
+							}
+						},
+						error: function() {
+							layer.closeAll('loading');
+							layer.msg('操作失败，请重试', {icon: 2});
+						}
+					});
+				},
+
+				/**
+				 * 格式化时间
+				 */
+				formatTime(timestamp) {
+					if (!timestamp || timestamp === 0) return '-';
+					var date = new Date(timestamp * 1000);
+					var Y = date.getFullYear();
+					var M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1);
+					var D = (date.getDate() < 10 ? '0' + date.getDate() : date.getDate());
+					var h = (date.getHours() < 10 ? '0' + date.getHours() : date.getHours());
+					var m = (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes());
+					return Y + '-' + M + '-' + D + ' ' + h + ':' + m;
+				},
+
+				/**
+				 * 获取状态文本
+				 */
+				getStatusText(status) {
+					var statusMap = {
+						'0': '待审核',
+						'1': '审核通过',
+						'-1': '审核拒绝'
+					};
+					return statusMap[status] || '未知';
+				},
+
+				/**
+				 * 获取状态样式类
+				 */
+				getStatusClass(status) {
+					var classMap = {
+						'0': 'pending',
+						'1': 'approved',
+						'-1': 'rejected'
+					};
+					return classMap[status] || '';
+				}
+			}
+		});
+	});
+
+	// 点击弹窗外部关闭
+	window.onclick = function(event) {
+		var modal = document.getElementById('rejectModal');
+		if (event.target == modal) {
+			modal.style.display = 'none';
+		}
+	}
+</script>
+</body>
+</html>
