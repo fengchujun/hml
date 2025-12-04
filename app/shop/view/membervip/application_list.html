@@ -1,154 +1,148 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="UTF-8">
-	<title>特邀会员申请审核</title>
-	<style>
-		.ns-table-th-fixed {
-			background: #f5f7fa;
-		}
+<style>
+	.ns-table-th-fixed {
+		background: #f5f7fa;
+	}
 
-		.status-badge {
-			display: inline-block;
-			padding: 4px 12px;
-			border-radius: 4px;
-			font-size: 12px;
-			font-weight: 500;
-		}
+	.status-badge {
+		display: inline-block;
+		padding: 4px 12px;
+		border-radius: 4px;
+		font-size: 12px;
+		font-weight: 500;
+	}
 
-		.status-badge.pending {
-			background: #fff3cd;
-			color: #856404;
-		}
+	.status-badge.pending {
+		background: #fff3cd;
+		color: #856404;
+	}
 
-		.status-badge.approved {
-			background: #d1ecf1;
-			color: #0c5460;
-		}
+	.status-badge.approved {
+		background: #d1ecf1;
+		color: #0c5460;
+	}
 
-		.status-badge.rejected {
-			background: #f8d7da;
-			color: #721c24;
-		}
+	.status-badge.rejected {
+		background: #f8d7da;
+		color: #721c24;
+	}
 
-		.action-btn {
-			margin-right: 5px;
-			padding: 5px 12px;
-			border-radius: 3px;
-			cursor: pointer;
-			font-size: 12px;
-		}
+	.action-btn {
+		margin-right: 5px;
+		padding: 5px 12px;
+		border-radius: 3px;
+		cursor: pointer;
+		font-size: 12px;
+	}
 
-		.btn-approve {
-			background: #28a745;
-			color: #fff;
-			border: none;
-		}
+	.btn-approve {
+		background: #28a745;
+		color: #fff;
+		border: none;
+	}
 
-		.btn-approve:hover {
-			background: #218838;
-		}
+	.btn-approve:hover {
+		background: #218838;
+	}
 
-		.btn-reject {
-			background: #dc3545;
-			color: #fff;
-			border: none;
-		}
+	.btn-reject {
+		background: #dc3545;
+		color: #fff;
+		border: none;
+	}
 
-		.btn-reject:hover {
-			background: #c82333;
-		}
+	.btn-reject:hover {
+		background: #c82333;
+	}
 
-		.search-bar {
-			margin-bottom: 20px;
-			padding: 15px;
-			background: #f5f7fa;
-			border-radius: 4px;
-		}
+	.search-bar {
+		margin-bottom: 20px;
+		padding: 15px;
+		background: #f5f7fa;
+		border-radius: 4px;
+	}
 
-		.search-bar select,
-		.search-bar input {
-			margin-right: 10px;
-			padding: 8px 12px;
-			border: 1px solid #ddd;
-			border-radius: 4px;
-		}
+	.search-bar select,
+	.search-bar input {
+		margin-right: 10px;
+		padding: 8px 12px;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+	}
 
-		.search-bar button {
-			padding: 8px 20px;
-			background: #007bff;
-			color: #fff;
-			border: none;
-			border-radius: 4px;
-			cursor: pointer;
-		}
+	.search-bar button {
+		padding: 8px 20px;
+		background: #007bff;
+		color: #fff;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+	}
 
-		.search-bar button:hover {
-			background: #0056b3;
-		}
+	.search-bar button:hover {
+		background: #0056b3;
+	}
 
-		.modal {
-			display: none;
-			position: fixed;
-			z-index: 1000;
-			left: 0;
-			top: 0;
-			width: 100%;
-			height: 100%;
-			overflow: auto;
-			background-color: rgba(0,0,0,0.4);
-		}
+	.modal {
+		display: none;
+		position: fixed;
+		z-index: 1000;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		overflow: auto;
+		background-color: rgba(0,0,0,0.4);
+	}
 
-		.modal-content {
-			background-color: #fefefe;
-			margin: 10% auto;
-			padding: 20px;
-			border: 1px solid #888;
-			width: 500px;
-			border-radius: 8px;
-		}
+	.modal-content {
+		background-color: #fefefe;
+		margin: 10% auto;
+		padding: 20px;
+		border: 1px solid #888;
+		width: 500px;
+		border-radius: 8px;
+	}
 
-		.modal-close {
-			color: #aaa;
-			float: right;
-			font-size: 28px;
-			font-weight: bold;
-			cursor: pointer;
-		}
+	.modal-close {
+		color: #aaa;
+		float: right;
+		font-size: 28px;
+		font-weight: bold;
+		cursor: pointer;
+	}
 
-		.modal-close:hover {
-			color: #000;
-		}
+	.modal-close:hover {
+		color: #000;
+	}
 
-		.modal-body textarea {
-			width: 100%;
-			height: 120px;
-			padding: 10px;
-			border: 1px solid #ddd;
-			border-radius: 4px;
-			resize: vertical;
-		}
+	.modal-body textarea {
+		width: 100%;
+		height: 120px;
+		padding: 10px;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		resize: vertical;
+	}
 
-		.modal-footer {
-			margin-top: 20px;
-			text-align: right;
-		}
+	.modal-footer {
+		margin-top: 20px;
+		text-align: right;
+	}
 
-		.modal-footer button {
-			margin-left: 10px;
-			padding: 8px 20px;
-			border: none;
-			border-radius: 4px;
-			cursor: pointer;
-		}
-	</style>
-</head>
-<body>
-<div id="app" style="padding: 20px;">
-	<h2>特邀会员申请审核</h2>
+	.modal-footer button {
+		margin-left: 10px;
+		padding: 8px 20px;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+</style>
+
+<div id="app">
+	<h2 style="padding: 20px 20px 0;">特邀会员申请审核</h2>
 
 	<!-- 搜索栏 -->
-	<div class="search-bar">
+	<div class="search-bar" style="margin: 20px;">
 		<select v-model="searchParams.status" @change="loadData">
 			<option value="">全部状态</option>
 			<option value="0">待审核</option>
@@ -160,58 +154,60 @@
 	</div>
 
 	<!-- 数据表格 -->
-	<table class="layui-table" lay-skin="line">
-		<thead>
-			<tr class="ns-table-th-fixed">
-				<th>申请ID</th>
-				<th>申请人</th>
-				<th>手机号</th>
-				<th>真实姓名</th>
-				<th>邀请人</th>
-				<th>申请时间</th>
-				<th>审核状态</th>
-				<th>审核时间</th>
-				<th>审核意见</th>
-				<th style="width: 180px;">操作</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr v-for="item in dataList" :key="item.application_id">
-				<td>{{ item.application_id }}</td>
-				<td>{{ item.member_nickname }}</td>
-				<td>{{ item.member_mobile }}</td>
-				<td>{{ item.realname }}</td>
-				<td>{{ item.inviter_nickname }}</td>
-				<td>{{ formatTime(item.create_time) }}</td>
-				<td>
-					<span class="status-badge" :class="getStatusClass(item.status)">
-						{{ getStatusText(item.status) }}
-					</span>
-				</td>
-				<td>{{ formatTime(item.audit_time) }}</td>
-				<td>{{ item.audit_remark || '-' }}</td>
-				<td>
-					<button v-if="item.status === 0"
-						class="action-btn btn-approve"
-						@click="approveApplication(item)">
-						通过
-					</button>
-					<button v-if="item.status === 0"
-						class="action-btn btn-reject"
-						@click="showRejectModal(item)">
-						拒绝
-					</button>
-					<span v-if="item.status !== 0">已处理</span>
-				</td>
-			</tr>
-			<tr v-if="dataList.length === 0">
-				<td colspan="10" style="text-align: center; color: #999;">暂无数据</td>
-			</tr>
-		</tbody>
-	</table>
+	<div style="padding: 0 20px;">
+		<table class="layui-table" lay-skin="line">
+			<thead>
+				<tr class="ns-table-th-fixed">
+					<th>申请ID</th>
+					<th>申请人</th>
+					<th>手机号</th>
+					<th>真实姓名</th>
+					<th>邀请人</th>
+					<th>申请时间</th>
+					<th>审核状态</th>
+					<th>审核时间</th>
+					<th>审核意见</th>
+					<th style="width: 180px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr v-for="item in dataList" :key="item.application_id">
+					<td>{{ item.application_id }}</td>
+					<td>{{ item.member_nickname }}</td>
+					<td>{{ item.member_mobile }}</td>
+					<td>{{ item.realname }}</td>
+					<td>{{ item.inviter_nickname }}</td>
+					<td>{{ formatTime(item.create_time) }}</td>
+					<td>
+						<span class="status-badge" :class="getStatusClass(item.status)">
+							{{ getStatusText(item.status) }}
+						</span>
+					</td>
+					<td>{{ formatTime(item.audit_time) }}</td>
+					<td>{{ item.audit_remark || '-' }}</td>
+					<td>
+						<button v-if="item.status === 0"
+							class="action-btn btn-approve"
+							@click="approveApplication(item)">
+							通过
+						</button>
+						<button v-if="item.status === 0"
+							class="action-btn btn-reject"
+							@click="showRejectModal(item)">
+							拒绝
+						</button>
+						<span v-if="item.status !== 0">已处理</span>
+					</td>
+				</tr>
+				<tr v-if="dataList.length === 0">
+					<td colspan="10" style="text-align: center; color: #999;">暂无数据</td>
+				</tr>
+			</tbody>
+		</table>
 
-	<!-- 分页 -->
-	<div id="pagination"></div>
+		<!-- 分页 -->
+		<div id="pagination"></div>
+	</div>
 
 	<!-- 拒绝理由弹窗 -->
 	<div id="rejectModal" class="modal">
@@ -232,8 +228,6 @@
 	</div>
 </div>
 
-<script src="__STATIC__/common/js/vue.min.js"></script>
-<script src="__STATIC__/common/js/layui/layui.js"></script>
 <script>
 	layui.use(['layer', 'laypage'], function() {
 		var layer = layui.layer;
@@ -267,7 +261,7 @@
 					layer.load(2);
 
 					$.ajax({
-						url: '__URL__/shop/membervip/applicationList',
+						url: ns.url('shop/membervip/applicationList'),
 						type: 'POST',
 						dataType: 'json',
 						data: {
@@ -326,7 +320,7 @@
 						layer.load(2);
 
 						$.ajax({
-							url: '__URL__/shop/membervip/approve',
+							url: ns.url('shop/membervip/approve'),
 							type: 'POST',
 							dataType: 'json',
 							data: {
@@ -381,7 +375,7 @@
 					layer.load(2);
 
 					$.ajax({
-						url: '__URL__/shop/membervip/reject',
+						url: ns.url('shop/membervip/reject'),
 						type: 'POST',
 						dataType: 'json',
 						data: {
@@ -454,5 +448,3 @@
 		}
 	}
 </script>
-</body>
-</html>
