@@ -464,11 +464,21 @@ class MemberVip extends BaseModel
         ]);
 
         // 4. 获取推荐的会员列表（最近20个）
-        $recommended_members = model('member')->getList([
+        $recommended_members_result = model('member')->getList([
             ['source_member', '=', $member_id],
             ['site_id', '=', $site_id],
             ['is_delete', '=', 0]
         ], 'member_id, nickname, headimg, member_level, member_level_name, reg_time', 'reg_time desc', 1, 20);
+
+        // 处理返回结果（getList可能返回数组结构）
+        $recommended_members = [];
+        if (is_array($recommended_members_result)) {
+            if (isset($recommended_members_result['data'])) {
+                $recommended_members = $recommended_members_result['data'];
+            } elseif (isset($recommended_members_result[0])) {
+                $recommended_members = $recommended_members_result;
+            }
+        }
 
         // 5. 计算剩余名额
         $available_quota = 0;
