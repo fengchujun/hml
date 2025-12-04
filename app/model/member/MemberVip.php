@@ -495,32 +495,32 @@ class MemberVip extends BaseModel
 
         return $this->success([
             'member_info' => [
-                'member_id' => $member['member_id'],
-                'nickname' => $member['nickname'],
-                'member_level' => $member['member_level'],
-                'member_level_name' => $member['member_level_name'],
-                'is_vip' => $member['member_level'] == 2,
-                'share_qrcode' => $member['share_qrcode']
+                'member_id' => $member['member_id'] ?? 0,
+                'nickname' => $member['nickname'] ?? '',
+                'member_level' => $member['member_level'] ?? 1,
+                'member_level_name' => $member['member_level_name'] ?? '普通会员',
+                'is_vip' => ($member['member_level'] ?? 0) == 2,
+                'share_qrcode' => $member['share_qrcode'] ?? ''
             ],
             'quota_info' => [
-                'total_quota' => $member['invite_quota'] ?? 0,
-                'used_quota' => $member['invite_quota_used'] ?? 0,
-                'locked_quota' => $member['invite_quota_locked'] ?? 0,
-                'available_quota' => max(0, $available_quota),
-                'quota_expire_time' => $member['quota_expire_time'] ?? 0
+                'total_quota' => (int)($member['invite_quota'] ?? 0),
+                'used_quota' => (int)($member['invite_quota_used'] ?? 0),
+                'locked_quota' => (int)($member['invite_quota_locked'] ?? 0),
+                'available_quota' => (int)max(0, $available_quota),
+                'quota_expire_time' => (int)($member['quota_expire_time'] ?? 0)
             ],
             'preserve_info' => [
-                'year_consumption' => $member['year_consumption'] ?? 0,
-                'preserve_target' => $preserve_target,
-                'preserve_progress' => $preserve_progress,
-                'need_amount' => max(0, $preserve_target - ($member['year_consumption'] ?? 0))
+                'year_consumption' => (float)($member['year_consumption'] ?? 0),
+                'preserve_target' => (float)$preserve_target,
+                'preserve_progress' => (float)$preserve_progress,
+                'need_amount' => (float)max(0, $preserve_target - ($member['year_consumption'] ?? 0))
             ],
             'stats' => [
-                'normal_member_count' => $normal_member_count,
-                'vip_member_count' => $vip_member_count,
-                'total_count' => $normal_member_count + $vip_member_count
+                'normal_member_count' => (int)$normal_member_count,
+                'vip_member_count' => (int)$vip_member_count,
+                'total_count' => (int)($normal_member_count + $vip_member_count)
             ],
-            'recommended_members' => $recommended_members
+            'recommended_members' => is_array($recommended_members) ? $recommended_members : []
         ]);
     }
 }
