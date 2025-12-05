@@ -202,7 +202,7 @@ class MemberVip extends BaseModel
 
         $list = model('member_vip_application')->pageList($condition, '*', 'create_time desc', $page, $page_size);
 
-        return $list;
+        return $this->success($list);
     }
 
     /**
