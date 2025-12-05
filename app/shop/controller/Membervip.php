@@ -14,19 +14,19 @@ class Membervip extends BaseShop
      */
     public function applicationList()
     {
-        if (request()->isAjax()) {
+        if (request()->isJson()) {
             $page = input('page', 1);
             $page_size = input('page_size', PAGE_LIST_ROWS);
             $status = input('status', '');
             $search_text = input('search_text', ''); // 搜索关键词
 
             $model = new MemberVipModel();
-            $result = $model->getApplicationList($this->site_id, $status, $page, $page_size);
+            $result = $model->getApplicationList($this->site_id, $status, $search_text, $page, $page_size);
 
-            return json($result);
+            return $result;
         }
 
-        return $this->fetch();
+        return $this->fetch('membervip/application_list');
     }
 
     /**

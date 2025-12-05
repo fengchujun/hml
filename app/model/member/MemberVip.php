@@ -180,11 +180,12 @@ class MemberVip extends BaseModel
      * 获取申请列表（后台管理）
      * @param int $site_id 站点ID
      * @param string $status 状态筛选
+     * @param string $search_text 搜索关键词（会员昵称或手机号）
      * @param int $page 页码
      * @param int $page_size 每页数量
      * @return array
      */
-    public function getApplicationList($site_id, $status = '', $page = 1, $page_size = PAGE_LIST_ROWS)
+    public function getApplicationList($site_id, $status = '', $search_text = '', $page = 1, $page_size = PAGE_LIST_ROWS)
     {
         $condition = [
             ['site_id', '=', $site_id]
@@ -194,9 +195,14 @@ class MemberVip extends BaseModel
             $condition[] = ['status', '=', $status];
         }
 
+        // 搜索条件：会员昵称或手机号
+        if (!empty($search_text)) {
+            $condition[] = ['member_nickname|member_mobile', 'like', '%' . $search_text . '%'];
+        }
+
         $list = model('member_vip_application')->pageList($condition, '*', 'create_time desc', $page, $page_size);
 
-        return $this->success($list);
+        return $list;
     }
 
     /**
