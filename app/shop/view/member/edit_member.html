@@ -146,28 +146,28 @@
 			<div class="info">
 				<div class="data-item">
 					<span>邀请名额总数：</span>
-					<span id="invite_quota">{$member_info.data.invite_quota ?? 0}</span>
-					<i class="layui-icon text-color" style="margin-left: 5px;" data-num="{$member_info.data.invite_quota ?? 0}" onclick="saveInviteQuota(this)"> </i>
+					<span id="invite_quota">{$member_info.data.invite_quota|default=0}</span>
+					<i class="layui-icon text-color" style="margin-left: 5px;" data-num="{$member_info.data.invite_quota|default=0}" onclick="saveInviteQuota(this)">&#xe642;</i>
 				</div>
 				<div class="data-item">
 					<span>已使用邀请名额：</span>
-					<span>{$member_info.data.invite_quota_used ?? 0}</span>
+					<span>{$member_info.data.invite_quota_used|default=0}</span>
 				</div>
 				<div class="data-item">
 					<span>已锁定邀请名额：</span>
-					<span>{$member_info.data.invite_quota_locked ?? 0}</span>
+					<span>{$member_info.data.invite_quota_locked|default=0}</span>
 				</div>
 				<div class="data-item">
 					<span>可用邀请名额：</span>
-					<span>{:($member_info.data.invite_quota ?? 0) - ($member_info.data.invite_quota_used ?? 0) - ($member_info.data.invite_quota_locked ?? 0)}</span>
+					<span>{:intval($member_info['data']['invite_quota']) - intval($member_info['data']['invite_quota_used']) - intval($member_info['data']['invite_quota_locked'])}</span>
 				</div>
 				<div class="data-item">
 					<span>本年度消费金额：</span>
-					<span>{:moneyFormat($member_info.data.year_consumption ?? 0)}</span>
+					<span>{:moneyFormat($member_info['data']['year_consumption'] ?? 0)}</span>
 				</div>
 				<div class="data-item">
 					<span>上次检查年份：</span>
-					<span>{$member_info.data.last_check_year ?? date('Y')}</span>
+					<span>{$member_info.data.last_check_year|default=0}</span>
 				</div>
 				<div class="data-item">
 					<span>名额过期时间：</span>
