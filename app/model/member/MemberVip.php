@@ -129,6 +129,16 @@ class MemberVip extends BaseModel
                 ['site_id', '=', $data['site_id']]
             ]);
 
+            // 8. 如果需要，更新申请人的推荐人（适用于C邀请B的情况，B原本是A推荐注册的）
+            if (!empty($data['update_source_member']) && $data['update_source_member'] == 1) {
+                model('member')->update([
+                    'source_member' => $data['inviter_id']
+                ], [
+                    ['member_id', '=', $data['member_id']],
+                    ['site_id', '=', $data['site_id']]
+                ]);
+            }
+
             model('member_vip_application')->commit();
             return $this->success($application_id, '申请提交成功，请等待审核');
 

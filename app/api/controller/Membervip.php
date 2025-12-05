@@ -28,6 +28,25 @@ class Membervip extends BaseApi
     }
 
     /**
+     * 获取当前用户的推荐人（source_member）
+     * @return array
+     */
+    public function getMySourceMember()
+    {
+        $token = $this->checkToken();
+        if ($token['code'] < 0) return $this->response($token);
+
+        $member_info = model('member')->getInfo([
+            ['member_id', '=', $this->member_id],
+            ['site_id', '=', $this->site_id]
+        ], 'source_member');
+
+        return $this->response($this->success([
+            'source_member' => $member_info['source_member'] ?? 0
+        ]));
+    }
+
+    /**
      * 提交特邀会员申请
      * @return array
      */
@@ -40,7 +59,8 @@ class Membervip extends BaseApi
             'member_id' => $this->member_id,
             'site_id' => $this->site_id,
             'inviter_id' => input('inviter_id', 0),
-            'realname' => input('realname', '')
+            'realname' => input('realname', ''),
+            'update_source_member' => input('update_source_member', 0) // 是否更新推荐人
         ];
 
         // 验证必填项

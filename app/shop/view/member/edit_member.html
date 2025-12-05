@@ -136,6 +136,49 @@
 	</div>
 </div>
 
+{if $member_info.data.member_level == 2}
+<div class="layui-card card-common card-brief head">
+	<div class="layui-card-header">
+        <span class="card-title">特邀会员</span>
+	</div>
+	<div class="layui-card-body">
+		<div class="member-info">
+			<div class="info">
+				<div class="data-item">
+					<span>邀请名额总数：</span>
+					<span id="invite_quota">{$member_info.data.invite_quota ?? 0}</span>
+					<i class="layui-icon text-color" style="margin-left: 5px;" data-num="{$member_info.data.invite_quota ?? 0}" onclick="saveInviteQuota(this)"> </i>
+				</div>
+				<div class="data-item">
+					<span>已使用邀请名额：</span>
+					<span>{$member_info.data.invite_quota_used ?? 0}</span>
+				</div>
+				<div class="data-item">
+					<span>已锁定邀请名额：</span>
+					<span>{$member_info.data.invite_quota_locked ?? 0}</span>
+				</div>
+				<div class="data-item">
+					<span>可用邀请名额：</span>
+					<span>{:($member_info.data.invite_quota ?? 0) - ($member_info.data.invite_quota_used ?? 0) - ($member_info.data.invite_quota_locked ?? 0)}</span>
+				</div>
+				<div class="data-item">
+					<span>本年度消费金额：</span>
+					<span>{:moneyFormat($member_info.data.year_consumption ?? 0)}</span>
+				</div>
+				<div class="data-item">
+					<span>上次检查年份：</span>
+					<span>{$member_info.data.last_check_year ?? date('Y')}</span>
+				</div>
+				<div class="data-item">
+					<span>名额过期时间：</span>
+					<span>{if !empty($member_info.data.quota_expire_time)}{:date('Y-m-d H:i:s', $member_info.data.quota_expire_time)}{else}永久有效{/if}</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{/if}
+
 <div class="layui-card card-common card-brief head">
 	<div class="layui-card-header">
         <span class="card-title">账户明细</span>

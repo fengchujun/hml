@@ -5,11 +5,11 @@
 			<!-- 头部提示 -->
 			<view class="header-tip">
 				<text class="tip-icon">🎉</text>
-				<text class="tip-text">恭喜！您受邀成为特邀会员</text>
+				<text class="tip-text">{{ inviterInfo.has_quota ? '恭喜!您受邀成为特邀会员' : '特邀会员申请' }}</text>
 			</view>
 
 			<!-- 邀请人信息 -->
-			<view class="inviter-card">
+			<view class="inviter-card" v-if="inviterInfo.inviter_nickname">
 				<view class="card-title">邀请人信息</view>
 				<view class="inviter-info">
 					<view class="info-item">
@@ -27,14 +27,20 @@
 				</view>
 			</view>
 
-			<!-- 名额已用完提示 -->
-			<view class="quota-empty-tip" v-if="!inviterInfo.has_quota">
+			<!-- 提示：推荐人不是特邀会员或无名额 -->
+			<view class="warning-tip" v-if="showNoInviterWarning">
 				<text class="icon">⚠️</text>
-				<text>邀请人的名额已用完，您将注册为普通会员</text>
+				<text>{{ noInviterWarningText }}</text>
+			</view>
+
+			<!-- 名额已用完提示 -->
+			<view class="quota-empty-tip" v-if="inviterInfo.inviter_nickname && !inviterInfo.has_quota">
+				<text class="icon">⚠️</text>
+				<text>邀请人的名额已用完，暂时无法申请特邀会员</text>
 			</view>
 
 			<!-- 申请表单 -->
-			<view class="form-card" v-if="inviterInfo.has_quota">
+			<view class="form-card" v-if="inviterInfo.has_quota && !hasExistApplication">
 				<view class="card-title">填写申请信息</view>
 				<view class="form-item">
 					<view class="form-label">真实姓名 <text class="required">*</text></view>
@@ -69,7 +75,8 @@
 export default {
 	data() {
 		return {
-			inviterId: 0,
+			inviterId: 0, // 邀请人ID
+			fromUrlParam: false, // 是否从URL参数获取的inviter_id
 			inviterInfo: {
 				has_quota: false,
 				available_quota: 0,
@@ -79,24 +86,49 @@ export default {
 			formData: {
 				realname: ''
 			},
-			hasExistApplication: false
+			hasExistApplication: false,
+			showNoInviterWarning: false, // 显示无推荐人警告
+			noInviterWarningText: '' // 警告文本
 		};
 	},
 	onLoad(options) {
-		this.inviterId = options.inviter_id || 0;
-
-		if (!this.inviterId) {
-			this.$util.showToast({ title: '邀请信息有误' });
-			setTimeout(() => {
-				uni.navigateBack();
-			}, 1500);
-			return;
+		// 检查是否有URL参数传入的inviter_id
+		if (options.inviter_id) {
+			this.inviterId = parseInt(options.inviter_id);
+			this.fromUrlParam = true;
+			this.checkInviterQuota();
+			this.checkExistApplication();
+		} else {
+			// 没有URL参数，从当前用户的source_member获取
+			this.getMySourceMember();
 		}
-
-		this.checkInviterQuota();
-		this.checkExistApplication();
 	},
 	methods: {
+		/**
+		 * 获取当前用户的source_member作为邀请人
+		 */
+		getMySourceMember() {
+			this.$api.sendRequest({
+				url: '/api/membervip/getMySourceMember',
+				success: res => {
+					if (res.code >= 0) {
+						if (res.data.source_member && res.data.source_member > 0) {
+							this.inviterId = res.data.source_member;
+							this.fromUrlParam = false;
+							this.checkInviterQuota();
+							this.checkExistApplication();
+						} else {
+							// 没有推荐人
+							this.showNoInviterWarning = true;
+							this.noInviterWarningText = '您当前没有推荐人，无法申请特邀会员';
+						}
+					} else {
+						this.$util.showToast({ title: res.message });
+					}
+				}
+			});
+		},
+
 		/**
 		 * 检查邀请人名额
 		 */
@@ -109,11 +141,16 @@ export default {
 				success: res => {
 					if (res.code >= 0) {
 						this.inviterInfo = res.data;
+						if (!res.data.has_quota) {
+							this.showNoInviterWarning = true;
+							if (res.data.inviter_nickname) {
+								this.noInviterWarningText = `推荐人 ${res.data.inviter_nickname} 的名额已用完`;
+							}
+						}
 					} else {
-						this.$util.showToast({ title: res.message });
-						setTimeout(() => {
-							uni.navigateBack();
-						}, 1500);
+						// 推荐人不是特邀会员或其他错误
+						this.showNoInviterWarning = true;
+						this.noInviterWarningText = res.message || '推荐人不是特邀会员或名额已用完';
 					}
 				}
 			});
@@ -151,7 +188,8 @@ export default {
 				url: '/api/membervip/applyVipMember',
 				data: {
 					inviter_id: this.inviterId,
-					realname: this.formData.realname
+					realname: this.formData.realname,
+					update_source_member: this.fromUrlParam ? 1 : 0 // 如果是URL参数，需要更新source_member
 				},
 				success: res => {
 					uni.hideLoading();
@@ -166,10 +204,10 @@ export default {
 							}
 						});
 					} else if (res.message === 'QUOTA_EXHAUSTED') {
-						// 名额用完，成为普通会员
+						// 名额用完
 						uni.showModal({
 							title: '提示',
-							content: '邀请人的名额已用完，您已注册为普通会员',
+							content: '邀请人的名额已用完，暂时无法申请',
 							showCancel: false,
 							success: () => {
 								uni.navigateBack();
@@ -273,6 +311,22 @@ export default {
 				}
 			}
 		}
+	}
+}
+
+/* 警告提示（没有推荐人或推荐人不是特邀会员） */
+.warning-tip {
+	background: #fff3cd;
+	border-radius: 20rpx;
+	padding: 30rpx;
+	text-align: center;
+	color: #856404;
+	margin-bottom: 20rpx;
+
+	.icon {
+		font-size: 48rpx;
+		display: block;
+		margin-bottom: 10rpx;
 	}
 }
 

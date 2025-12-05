@@ -722,3 +722,51 @@ function editMemberAddress(event) {
 		}
 	})
 }
+
+/**
+ * 调整特邀会员邀请名额
+ */
+function saveInviteQuota(e) {
+	var current_quota = parseInt($(e).attr('data-num'));
+
+	layer.prompt({
+		formType: 0,
+		title: '调整邀请名额总数',
+		value: current_quota,
+		maxlength: 10
+	}, function(value, index) {
+		var new_quota = parseInt(value);
+
+		if (isNaN(new_quota) || new_quota < 0) {
+			layer.msg('请输入有效的数字（大于等于0）', {icon: 5});
+			return false;
+		}
+
+		if (repeat_flag) return false;
+		repeat_flag = true;
+
+		$.ajax({
+			url: ns.url("shop/membervip/updateQuota"),
+			data: {
+				member_id: member_id,
+				quota: new_quota
+			},
+			dataType: 'JSON',
+			type: 'POST',
+			success: function(res) {
+				repeat_flag = false;
+				if (res.code == 0) {
+					layer.msg('调整成功', {icon: 1});
+					layer.close(index);
+					listenerHash(); // 刷新页面
+				} else {
+					layer.msg(res.message, {icon: 2});
+				}
+			},
+			error: function() {
+				repeat_flag = false;
+				layer.msg('操作失败，请重试', {icon: 2});
+			}
+		});
+	});
+}
