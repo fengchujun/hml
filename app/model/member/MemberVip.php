@@ -288,6 +288,9 @@ class MemberVip extends BaseModel
                 'change_time' => time()
             ]);
 
+            // 7. 发放优惠券（如果配置了）
+            $this->giveWelcomeCoupon($application['member_id'], $site_id);
+
             model('member_vip_application')->commit();
             return $this->success('', '审核通过');
 
@@ -538,5 +541,54 @@ class MemberVip extends BaseModel
             ],
             'recommended_members' => is_array($recommended_members) ? $recommended_members : []
         ]);
+    }
+
+    /**
+     * 发放欢迎优惠券给新晋特邀会员
+     * @param int $member_id 会员ID
+     * @param int $site_id 站点ID
+     * @return void
+     */
+    private function giveWelcomeCoupon($member_id, $site_id)
+    {
+        try {
+            // 读取配置，查看是否设置了要发放的优惠券
+            $config = model('member_vip_config')->getInfo([
+                ['site_id', '=', $site_id]
+            ], 'welcome_coupon_id');
+
+            if (empty($config) || empty($config['welcome_coupon_id'])) {
+                // 没有配置优惠券，跳过
+                return;
+            }
+
+            $coupon_type_id = intval($config['welcome_coupon_id']);
+
+            // 检查优惠券插件是否存在
+            if (!class_exists('\addon\coupon\model\Coupon')) {
+                \think\facade\Log::write('优惠券插件不存在，无法发放优惠券');
+                return;
+            }
+
+            // 调用优惠券模型发放优惠券
+            $coupon_model = new \addon\coupon\model\Coupon();
+            $result = $coupon_model->giveCoupon(
+                [['coupon_type_id' => $coupon_type_id, 'num' => 1]],
+                $site_id,
+                $member_id,
+                \addon\coupon\model\Coupon::GET_TYPE_MERCHANT_GIVE, // 商家发放，不受领取限制
+                0 // related_id
+            );
+
+            if ($result['code'] < 0) {
+                \think\facade\Log::write('发放特邀会员欢迎优惠券失败：' . $result['message']);
+            } else {
+                \think\facade\Log::write('成功发放特邀会员欢迎优惠券：会员ID=' . $member_id . ', 优惠券类型ID=' . $coupon_type_id);
+            }
+
+        } catch (\Exception $e) {
+            // 发券失败不影响主流程
+            \think\facade\Log::write('发放特邀会员欢迎优惠券异常：' . $e->getMessage());
+        }
     }
 }

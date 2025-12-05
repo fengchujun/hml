@@ -47,15 +47,16 @@ CREATE TABLE IF NOT EXISTS `hml_member_vip_config` (
   `default_quota` INT(11) NOT NULL DEFAULT 2 COMMENT '默认邀请名额',
   `consumption_threshold` DECIMAL(10,2) NOT NULL DEFAULT 50000.00 COMMENT '消费达标门槛',
   `quota_reward` INT(11) NOT NULL DEFAULT 2 COMMENT '达标后奖励名额',
+  `welcome_coupon_id` INT(11) NOT NULL DEFAULT 0 COMMENT '欢迎优惠券类型ID（审核通过后发放）',
   `create_time` INT(11) DEFAULT 0,
   `update_time` INT(11) DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_site_id` (`site_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='特邀会员配置表';
 
--- 4. 插入默认配置
-INSERT INTO `hml_member_vip_config` (`site_id`, `default_quota`, `consumption_threshold`, `quota_reward`, `create_time`)
-VALUES (1, 2, 50000.00, 2, UNIX_TIMESTAMP())
+-- 4. 插入默认配置（welcome_coupon_id需要手动设置）
+INSERT INTO `hml_member_vip_config` (`site_id`, `default_quota`, `consumption_threshold`, `quota_reward`, `welcome_coupon_id`, `create_time`)
+VALUES (1, 2, 50000.00, 2, 0, UNIX_TIMESTAMP())
 ON DUPLICATE KEY UPDATE `update_time` = UNIX_TIMESTAMP();
 
 -- 5. 更新现有特邀会员（member_level=2）的数据
@@ -63,6 +64,10 @@ ON DUPLICATE KEY UPDATE `update_time` = UNIX_TIMESTAMP();
 UPDATE `hml_member`
 SET `level_expire_time` = UNIX_TIMESTAMP(CONCAT(YEAR(NOW()), '-12-31 23:59:59'))
 WHERE `member_level` = 2 AND `level_expire_time` > 0 AND `level_expire_time` < UNIX_TIMESTAMP(CONCAT(YEAR(NOW()), '-12-31 23:59:59'));
+
+-- 6. 如果配置表已存在，添加欢迎优惠券字段（增量更新）
+ALTER TABLE `hml_member_vip_config`
+ADD COLUMN IF NOT EXISTS `welcome_coupon_id` INT(11) NOT NULL DEFAULT 0 COMMENT '欢迎优惠券类型ID（审核通过后发放）' AFTER `quota_reward`;
 
 -- ========================================
 -- 说明：
@@ -73,4 +78,5 @@ WHERE `member_level` = 2 AND `level_expire_time` > 0 AND `level_expire_time` < U
 -- 5. last_check_year: 最后一次保级检查的年份
 -- 6. quota_expire_time: 名额过期时间（当年12月31日）
 -- 7. share_qrcode: 个人推广小程序码存储路径
+-- 8. welcome_coupon_id: 欢迎优惠券类型ID（审核通过后自动发放，0表示不发放）
 -- ========================================
